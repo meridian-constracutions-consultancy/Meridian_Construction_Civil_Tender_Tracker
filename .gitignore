@@ -1,0 +1,165 @@
+# ==============================================================================
+# DEFENSE-GRADE GITIGNORE: SENSITIVE CREDENTIALS, KEYS, PASSWORDS & API PROTECTION
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. ENVIRONMENT VARIABLES, PASSWORDS & SECRET FILES (CRITICAL - NEVER COMMIT)
+# ------------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env.staging
+
+# Secrets, credentials and password stores
+secrets/
+credentials/
+secrets.json
+secrets.yaml
+secrets.yml
+credentials.json
+client_secret*.json
+service_account*.json
+google-credentials*.json
+firebase-adminsdk*.json
+*api_key*
+*apikey*
+api_keys.json
+jwt_secret*
+auth_token*
+token.json
+tokens.json
+session.json
+sessions/
+cookies.txt
+cookies.json
+*.credentials
+.htpasswd
+htpasswd
+
+# Private Cryptographic Keys, Certificates & SSH Keys
+*.key
+*.pem
+*.crt
+*.cert
+*.csr
+*.pfx
+*.p12
+*.jks
+*.keystore
+id_rsa
+id_rsa*
+id_ecdsa
+id_ecdsa*
+id_ed25519
+id_ed25519*
+*.pub
+
+# Cloud CLI Credentials
+.aws/
+.gcp/
+.azure/
+.kaggle/
+
+# ------------------------------------------------------------------------------
+# 2. DATABASES, USER ACCOUNT STORES & BACKUPS (PREVENTS LEAKING HASHED PASSWORDS)
+# ------------------------------------------------------------------------------
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+*.sqlite
+*.sqlite3
+*.sql
+*.dump
+*.backup
+*.bak
+tender_intelligence.db*
+backend/tender_intelligence.db*
+
+# ------------------------------------------------------------------------------
+# 3. SECURITY AUDIT LOGS, TELEMETRY & ATTACK LOGS
+# ------------------------------------------------------------------------------
+*.log
+logs/
+*.log.*
+security_audit.log
+waf_blocked.log
+access.log
+error.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ------------------------------------------------------------------------------
+# 4. DOWNLOADS, TEMPORARY EXTRACTS & CACHES
+# ------------------------------------------------------------------------------
+downloads/
+data/
+cache/
+.cache/
+temp/
+tmp/
+*.tmp
+
+# ------------------------------------------------------------------------------
+# 5. PYTHON & VIRTUAL ENVIRONMENTS
+# ------------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+build/
+develop-eggs/
+dist/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# ------------------------------------------------------------------------------
+# 6. NODE / FRONTEND DEPENDENCIES & BUILD OUTPUTS
+# ------------------------------------------------------------------------------
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+.npm/
+.yarn/
+
+# ------------------------------------------------------------------------------
+# 7. OPERATING SYSTEM & IDE ARTIFACTS
+# ------------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

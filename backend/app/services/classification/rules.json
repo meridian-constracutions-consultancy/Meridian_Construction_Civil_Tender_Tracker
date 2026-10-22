@@ -1,0 +1,103 @@
+{
+  "categories": [
+    {
+      "id": "civil_construction",
+      "name": "Civil Construction & Works",
+      "positive_keywords": [
+        "civil works", "civil work", "construction of", "construction work", "building construction",
+        "earthwork", "masonry", "plastering", "flooring", "concrete", "rcc", "pavement",
+        "renovation work", "restoration work", "repair and maintenance of building",
+        "boundary wall", "compound wall", "shed construction", "rehabilitation of building",
+        "site development", "leveling", "excavation", "retaining wall"
+      ],
+      "phrases": [
+        "construction of building", "civil maintenance", "civil repair", "construction of compound wall",
+        "construction of boundary wall", "permanent restoration work", "upgradation of building"
+      ]
+    },
+    {
+      "id": "roads_highways",
+      "name": "Roads & Highways",
+      "positive_keywords": [
+        "road", "roads", "highway", "highways", "pavement", "bituminous", "asphalt",
+        "cc road", "bt road", "wbm", "macadam", "culvert", "causeway", "strengthening of road",
+        "widening of road", "resurfacing", "pot hole repair", "restoration work in road",
+        "pmgsy", "pwd road", "nhai", "expressway"
+      ],
+      "phrases": [
+        "construction of road", "restoration of road", "widening and strengthening",
+        "special repair to road", "maintenance of road", "construction of cc road",
+        "restoration work in various road"
+      ]
+    },
+    {
+      "id": "bridges_flyovers",
+      "name": "Bridges & Flyovers",
+      "positive_keywords": [
+        "bridge", "bridges", "flyover", "flyovers", "robing", "robs", "underpass", "subway",
+        "viaduct", "box culvert", "girder", "pier", "abutment", "bridge deck", "expansion joint",
+        "rcc bridge", "high level bridge"
+      ],
+      "phrases": [
+        "construction of bridge", "construction of flyover", "major bridge", "minor bridge",
+        "high level bridge", "submersible bridge", "river bridge", "rcc bridge"
+      ]
+    },
+    {
+      "id": "water_supply_drainage",
+      "name": "Water Supply, Sewerage & Drainage",
+      "positive_keywords": [
+        "water supply", "pipeline", "pipelines", "distribution pipeline", "sewerage",
+        "drainage", "storm water drain", "nalah", "nullah", "intake well", "water treatment plant",
+        "wtp", "sewage treatment plant", "stp", "overhead tank", "oht", "sump", "tube well",
+        "pumping station", "rising main", "chlorination", "gravity main"
+      ],
+      "phrases": [
+        "water supply scheme", "urban water supply", "rural water supply",
+        "laying of pipeline", "construction of drain", "underground drainage",
+        "distribution network", "sewer line"
+      ]
+    },
+    {
+      "id": "structural_engineering",
+      "name": "Structural Engineering & Design",
+      "positive_keywords": [
+        "structural design", "structural drawing", "structural analysis", "rcc design",
+        "steel structure", "structural stability", "structural audit", "retrofitting",
+        "foundation design", "soil investigation", "geotechnical", "seismic design",
+        "earthquake resistant", "structural strengthening", "stability certificate"
+      ],
+      "phrases": [
+        "structural consultancy", "structural stability certificate", "structural safety audit",
+        "design of rcc", "structural consultant", "retrofitting and strengthening"
+      ]
+    },
+    {
+      "id": "consultancy_pmc_dpr",
+      "name": "PMC, DPR & Engineering Consultancy",
+      "positive_keywords": [
+        "dpr", "detailed project report", "pmc", "project management consultancy",
+        "architectural consultancy", "engineering consultancy", "feasibility study",
+        "third party inspection", "tpi", "quality audit", "quantity surveying",
+        "boq preparation", "technical inspection"
+      ],
+      "phrases": [
+        "preparation of dpr", "project management consultant", "third party quality control",
+        "detailed project report for", "architectural and structural consultancy"
+      ]
+    }
+  ],
+  "disqualifying_negative_keywords": [
+    "laptop", "laptops", "desktop computer", "toner cartridge", "photocopier",
+    "printer paper", "stationery items", "office furniture", "executive chair",
+    "ambulance", "hire of vehicle", "car rental", "security guards", "catering services",
+    "canteen services", "dietary services", "medicines", "pharmaceuticals", "surgical items",
+    "bed sheets", "curtains", "uniform supply", "sanitary napkins", "grocery", "sweeper",
+    "housekeeping consumables", "cleaning chemicals"
+  ],
+  "contextual_negative_keywords": [
+    "supply of computer", "purchase of desktop", "procurement of vehicle",
+    "printing of books", "supply of medicine", "security personnel",
+    "manpower outsourcing", "hiring of inspecting vehicle"
+  ]
+}
