@@ -1,111 +1,128 @@
 {
   "categories": [
     {
-      "id": "civil_construction",
-      "name": "Civil Construction & Works",
-      "positive_keywords": [
-        "civil works", "civil work", "construction of", "construction work", "building construction",
-        "earthwork", "masonry", "plastering", "flooring", "concrete", "rcc", "pavement",
-        "renovation work", "restoration work", "repair and maintenance of building",
-        "boundary wall", "compound wall", "shed construction", "rehabilitation of building",
-        "site development", "leveling", "excavation", "retaining wall", "jda", "jaipur development authority",
-        "uit", "urban improvement trust", "rhb", "rajasthan housing board", "dlb", "nagar nigam", "cpwd"
-      ],
-      "phrases": [
-        "construction of building", "civil maintenance", "civil repair", "construction of compound wall",
-        "construction of boundary wall", "permanent restoration work", "upgradation of building"
-      ]
-    },
-    {
-      "id": "roads_highways",
-      "name": "Roads & Highways",
-      "positive_keywords": [
-        "road", "roads", "highway", "highways", "pavement", "bituminous", "asphalt",
-        "cc road", "bt road", "wbm", "macadam", "culvert", "causeway", "strengthening of road",
-        "widening of road", "resurfacing", "pot hole repair", "restoration work in road",
-        "pmgsy", "pwd road", "pwd", "pwd rajasthan", "rsrdc", "nhai", "expressway", "morth", "ring road"
-      ],
-      "phrases": [
-        "construction of road", "restoration of road", "widening and strengthening",
-        "special repair to road", "maintenance of road", "construction of cc road",
-        "restoration work in various road"
-      ]
-    },
-    {
-      "id": "bridges_flyovers",
-      "name": "Bridges & Flyovers",
-      "positive_keywords": [
-        "bridge", "bridges", "flyover", "flyovers", "rob", "robs", "railway over bridge",
-        "road over bridge", "rub", "road under bridge", "underpass", "subway",
-        "viaduct", "box culvert", "girder", "pier", "abutment", "bridge deck", "expansion joint",
-        "rcc bridge", "high level bridge", "elevated road"
-      ],
-      "phrases": [
-        "construction of bridge", "construction of flyover", "major bridge", "minor bridge",
-        "high level bridge", "submersible bridge", "river bridge", "rcc bridge",
-        "construction of rob", "construction of rub"
-      ]
-    },
-    {
-      "id": "metro_railways",
-      "name": "Metro & Railways (JMRC, IRCON, DFCCIL, Indian Railways)",
-      "positive_keywords": [
-        "metro", "jmrc", "jaipur metro", "delhi metro", "dmrc", "metro rail",
-        "ircon", "indian railway", "railways", "railway", "northern railway", "north western railway",
-        "nwr", "dfccil", "dedicated freight corridor", "rail track", "railway track", "platform",
-        "doubling", "electrification", "ballast", "station redevelopment", "track renewal", "ohe"
-      ],
-      "phrases": [
-        "indian railway", "metro rail project", "jaipur metro rail", "dedicated freight corridor",
-        "railway track works", "track renewal work", "station redevelopment"
-      ]
-    },
-    {
       "id": "structural_engineering",
       "name": "Structural Engineering & Design",
       "positive_keywords": [
         "structural design", "structure design", "structural drawing", "structure drawing",
-        "structural analysis", "rcc design", "steel structure", "structural stability",
-        "structural audit", "retrofitting", "foundation design", "soil investigation",
-        "geotechnical", "seismic design", "earthquake resistant", "structural strengthening",
-        "stability certificate", "structural vetting", "proof checking", "structural consultant"
+        "structural analysis", "rcc design", "steel structure design", "structural stability",
+        "structural audit", "retrofitting design", "foundation design", "soil investigation",
+        "geotechnical investigation", "seismic design", "earthquake resistant design",
+        "structural strengthening design", "stability certificate", "structural vetting",
+        "proof checking", "structural consultant", "structural consultancy",
+        "structural safety audit", "design of rcc", "design of steel structure",
+        "proof check", "structural safety certificate", "structural drawing preparation"
       ],
       "phrases": [
         "structural consultancy", "structural stability certificate", "structural safety audit",
-        "design of rcc", "structural consultant", "retrofitting and strengthening",
-        "structure design and drawing", "proof checking of structural design"
+        "design of rcc", "structural consultant", "retrofitting and strengthening design",
+        "structure design and drawing", "proof checking of structural design",
+        "proof check of structural design", "vetting of structural design",
+        "structural analysis and design", "design and drawing of structure"
       ]
     },
     {
       "id": "consultancy_pmc_dpr",
-      "name": "PMC, DPR & Engineering Consultancy",
+      "name": "Architecture, PMC & DPR Consultancy",
       "positive_keywords": [
-        "dpr", "detailed project report", "pmc", "project management consultancy",
-        "architecture design", "architectural design", "architectural planning",
-        "architectural consultancy", "engineering consultancy", "feasibility study",
-        "third party inspection", "tpi", "quality audit", "quantity surveying",
-        "boq preparation", "technical inspection", "master plan", "facade design",
-        "urban design", "landscape design"
+        "architectural", "architecture design", "architectural design", "architectural planning",
+        "architectural consultancy", "architectural drawing", "architectural services",
+        "architectural and engineering", "comprehensive architectural",
+        "dpr", "detailed project report", "preparation of dpr",
+        "pmc", "project management consultancy", "project management consultant",
+        "engineering consultancy", "design consultancy", "consultancy services",
+        "feasibility study", "third party inspection", "tpi",
+        "quality audit", "quantity surveying", "boq preparation", "technical inspection",
+        "master plan", "facade design", "urban design", "landscape design",
+        "authority engineer", "independent engineer", "transaction advisory",
+        "survey and investigation", "topographical survey", "geotechnical survey",
+        "selection of consultant", "multidisciplinary consultancy", "supervision consultancy"
       ],
       "phrases": [
-        "preparation of dpr", "project management consultant", "third party quality control",
-        "detailed project report for", "architectural and structural consultancy",
-        "architecture and engineering consultancy", "comprehensive architectural consultancy"
+        "preparation of dpr", "project management consultant", "project management consultancy",
+        "third party quality control", "detailed project report for",
+        "architectural and structural consultancy", "architecture and engineering consultancy",
+        "comprehensive architectural consultancy", "preparation of detailed project report",
+        "architectural and engineering design consultancy", "feasibility study and dpr",
+        "consultancy services for preparation of detailed project report",
+        "multidisciplinary consultancy services"
+      ]
+    },
+    {
+      "id": "bridges_flyovers",
+      "name": "Bridges, ROBs & Flyovers Design",
+      "positive_keywords": [
+        "rob design", "bridge design", "flyover design", "rub design", "underpass design",
+        "design of bridge", "design of rob", "design of flyover", "design of viaduct",
+        "design of underpass", "structural design of bridge", "proof checking of bridge",
+        "proof checking of rob", "detailed design of bridge", "detailed project report for rob",
+        "dpr for bridge", "dpr for flyover", "consultancy for bridge", "consultancy for rob",
+        "consultancy services for rob", "consultancy services for bridge",
+        "girder design", "pier design", "abutment design", "vetting of rob", "vetting of bridge"
+      ],
+      "phrases": [
+        "design of bridge", "design of flyover", "design of rob", "design of rub",
+        "detailed design of bridge", "proof checking of rob", "proof checking of bridge",
+        "consultancy services for bridge", "consultancy services for rob",
+        "preparation of dpr for rob", "preparation of dpr for bridge"
+      ]
+    },
+    {
+      "id": "metro_railways",
+      "name": "Metro & Railway Design / Consultancy",
+      "positive_keywords": [
+        "metro design", "railway design", "jmrc consultancy", "jmrc dpr", "ircon consultancy",
+        "dfccil consultancy", "design of metro", "railway consultancy", "metro consultancy",
+        "station design", "alignment design", "detailed design consultancy for metro",
+        "detailed design consultancy for railway", "proof checking for metro",
+        "proof checking for railway", "dpr for metro", "dpr for railway",
+        "general consultancy for metro", "general consultant", "independent engineer for railway",
+        "consultancy services for metro", "consultancy services for railway"
+      ],
+      "phrases": [
+        "detailed design consultancy", "general consultancy for metro", "dpr for railway",
+        "dpr for metro", "design consultancy for railway", "design consultancy for metro",
+        "proof checking of railway design", "detailed project report for metro"
+      ]
+    },
+    {
+      "id": "roads_highways",
+      "name": "Highways & Roads Design / DPR Consultancy",
+      "positive_keywords": [
+        "road design", "highway design", "dpr for road", "dpr for highway",
+        "pwd consultancy", "nhai consultancy", "rsrdc consultancy", "feasibility study for road",
+        "design of expressway", "traffic study and design", "detailed engineering consultancy",
+        "alignment design for road", "pavement design", "dpr consultancy for road",
+        "road safety audit consultancy", "survey work of various roads",
+        "authority engineer for road", "independent engineer for road", "supervision consultancy for highway"
+      ],
+      "phrases": [
+        "preparation of dpr for road", "detailed project report for road", "consultancy services for road",
+        "consultancy services for highway", "authority engineer for", "independent engineer for",
+        "road safety audit consultancy", "detailed engineering for road",
+        "feasibility study and detailed project report",
+        "consultancy services for preparation of detailed project report",
+        "consultancy services for preparation of dpr"
       ]
     },
     {
       "id": "water_supply_drainage",
-      "name": "Water Supply, Sewerage & Drainage",
+      "name": "Water Supply & Drainage Design",
       "positive_keywords": [
-        "water supply", "pipeline", "pipelines", "distribution pipeline", "sewerage",
-        "drainage", "storm water drain", "nalah", "nullah", "intake well", "water treatment plant",
-        "wtp", "sewage treatment plant", "stp", "overhead tank", "oht", "sump", "tube well",
-        "pumping station", "rising main", "chlorination", "gravity main"
+        "water supply design", "drainage design", "sewerage design", "wtp design", "stp design",
+        "design of water supply", "design of drainage", "design of sewerage", "design of wtp",
+        "design of stp", "hydraulic design", "design of pipeline", "design of intake well",
+        "design of overhead tank", "design of oht", "dpr for water supply", "dpr for sewerage",
+        "dpr for drainage", "water supply consultancy", "drainage consultancy",
+        "hydraulic modeling", "water network design", "sewer network design",
+        "wastewater management plan", "integrated wastewater", "dpr for wastewater",
+        "water supply scheme design", "sewerage network design", "wastewater management"
       ],
       "phrases": [
-        "water supply scheme", "urban water supply", "rural water supply",
-        "laying of pipeline", "construction of drain", "underground drainage",
-        "distribution network", "sewer line"
+        "design of water supply scheme", "design of drainage system", "design of sewerage system",
+        "hydraulic design of pipeline", "preparation of dpr for water", "preparation of dpr for sewerage",
+        "consultancy for water supply", "consultancy for drainage", "design and dpr for water",
+        "detailed project report for water supply", "integrated wastewater management plan"
       ]
     }
   ],
@@ -115,11 +132,18 @@
     "ambulance", "hire of vehicle", "car rental", "security guards", "catering services",
     "canteen services", "dietary services", "medicines", "pharmaceuticals", "surgical items",
     "bed sheets", "curtains", "uniform supply", "sanitary napkins", "grocery", "sweeper",
-    "housekeeping consumables", "cleaning chemicals"
+    "housekeeping consumables", "cleaning chemicals",
+    "rail track", "railway track", "track doubling", "ballast", "track renewal", "ohe", "platform redevelopment",
+    "earthwork", "masonry", "plastering", "flooring", "boundary wall", "compound wall", "retaining wall",
+    "renovation work", "restoration work", "site development", "shed construction",
+    "pipe laying", "laying of pipeline", "distribution pipeline", "sewer line", "tube well", "intake well", "pumping station",
+    "patch work", "pot hole filling", "bituminous concrete", "whitewash", "painting of building",
+    "pipeline leakages", "repairing of ac di ci", "leakage repair", "ozonator", "installation testing commissioning"
   ],
   "contextual_negative_keywords": [
     "supply of computer", "purchase of desktop", "procurement of vehicle",
     "printing of books", "supply of medicine", "security personnel",
-    "manpower outsourcing", "hiring of inspecting vehicle"
+    "manpower outsourcing", "hiring of inspecting vehicle", "supply of ballast",
+    "laying of track", "patch work on road", "pot hole filling"
   ]
 }

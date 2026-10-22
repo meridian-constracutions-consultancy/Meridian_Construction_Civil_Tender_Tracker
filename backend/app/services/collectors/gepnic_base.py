@@ -103,10 +103,10 @@ class GePNICBaseCollector(BaseCollector):
             logger.error(f"[{self.source_id}] Error discovering links from {page_url}: {e}")
             return []
 
-    def search_keyword_tenders(self, client: httpx.Client, keyword: str = "civil") -> List[Tuple[str, str]]:
+    def search_keyword_tenders(self, client: httpx.Client, keyword: str = "design") -> List[Tuple[str, str]]:
         """
-        Submits the portal's quick search form (tenderSearch) with the target keyword (e.g. 'civil').
-        Directly returns the newest civil tenders published on the portal matching the user's manual search.
+        Submits the portal's quick search form (tenderSearch) with the target keyword (e.g. 'design', 'consultancy').
+        Directly returns the newest tenders published on the portal matching the search keyword.
         """
         try:
             r = self.fetch_url(client, self.base_url)
@@ -157,11 +157,11 @@ class GePNICBaseCollector(BaseCollector):
         with httpx.Client(verify=True, follow_redirects=True) as client:
             logger.info(f"[{self.source_id}] Starting collection run on {self.base_url}")
 
-            # Targeted multi-keyword search rotation covering all user civil infrastructure categories
+            # Focused strictly on Design, Consultancy, Structural, Architectural, DPR, PMC, and Utilities Design
             target_keywords = [
-                "civil", "construction", "road", "bridge", "rob", "railway",
-                "metro", "pwd", "nhai", "jda", "rsrdc", "consultancy",
-                "architecture", "structure", "dpr", "pmc"
+                "design", "consultancy", "consultant", "dpr", "pmc",
+                "architectural", "structural", "proof checking", "vetting",
+                "feasibility", "survey", "inspection", "audit", "master plan"
             ]
             
             candidate_links: List[Tuple[str, str]] = []

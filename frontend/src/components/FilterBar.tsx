@@ -70,7 +70,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <input
             type="text"
             className="search-input"
-            placeholder="Search civil tender title, ID, ref no, department, location..."
+            placeholder="Search design & consultancy tender title, ID, ref no, department, location..."
             value={localSearch}
             onChange={handleSearchChange}
             aria-label="Search tenders"
@@ -93,16 +93,15 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           className="select-input select-category"
           value={filters.category_id}
           onChange={(e) => onFilterChange({ category_id: e.target.value })}
-          aria-label="Select civil category"
+          aria-label="Select design category"
         >
-          <option value="">All Civil Categories</option>
-          <option value="civil_construction">Civil Works & Buildings</option>
-          <option value="roads_highways">Roads & Highways (PWD/RSRDC/NHAI)</option>
-          <option value="bridges_flyovers">Bridges, ROBs & Flyovers</option>
-          <option value="metro_railways">Metro & Railways (JMRC/IRCON/DFCCIL)</option>
+          <option value="">All Design & Consultancy Categories</option>
           <option value="structural_engineering">Structural Engineering & Design</option>
-          <option value="consultancy_pmc_dpr">PMC, DPR & Architecture Consultancy</option>
-          <option value="water_supply_drainage">Water Supply & Drainage</option>
+          <option value="consultancy_pmc_dpr">Architecture, PMC & DPR Consultancy</option>
+          <option value="bridges_flyovers">Bridges, ROBs & Flyovers Design</option>
+          <option value="metro_railways">Metro & Railway Design / Consultancy</option>
+          <option value="roads_highways">Highways & Roads Design / DPR</option>
+          <option value="water_supply_drainage">Water Supply & Drainage Design</option>
         </select>
 
         {/* State Dropdown */}
@@ -160,7 +159,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             onClick={() => onFilterChange({ is_civil_only: !filters.is_civil_only })}
           >
             <CheckCircle2 size={13} />
-            <span>Civil & Structural Only</span>
+            <span>Design & Consultancy Only</span>
           </button>
 
           <button
@@ -196,6 +195,13 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             onClick={() => onFilterChange({ category_id: filters.category_id === 'structural_engineering' ? '' : 'structural_engineering' })}
           >
             <span>🏛️ Architecture & Structure Design</span>
+          </button>
+
+          <button
+            className={`toggle-filter-chip ${filters.category_id === 'water_supply_drainage' ? 'active' : ''}`}
+            onClick={() => onFilterChange({ category_id: filters.category_id === 'water_supply_drainage' ? '' : 'water_supply_drainage' })}
+          >
+            <span>💧 Water Supply & Drainage Design</span>
           </button>
 
           <button

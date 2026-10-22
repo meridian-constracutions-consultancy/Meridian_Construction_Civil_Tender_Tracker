@@ -36,7 +36,7 @@ export const StatCards: React.FC<StatCardsProps> = ({
         </div>
         <div className="stat-content">
           <span className="stat-value">{civilCount.toLocaleString()}</span>
-          <span className="stat-label">Civil & Structural</span>
+          <span className="stat-label">Design & Consultancy</span>
         </div>
       </div>
 

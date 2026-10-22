@@ -84,14 +84,13 @@ export const TenderTable: React.FC<TenderTableProps> = ({
 
   const getCategoryLabel = useCallback((id?: string) => {
     switch (id) {
-      case 'roads_highways': return 'Roads & Highways';
-      case 'bridges_flyovers': return 'Bridges & ROBs';
-      case 'metro_railways': return 'Metro & Railways';
-      case 'water_supply_drainage': return 'Water & Drainage';
+      case 'roads_highways': return 'Roads & Highways Design';
+      case 'bridges_flyovers': return 'Bridges & ROBs Design';
+      case 'metro_railways': return 'Metro & Railways Design';
+      case 'water_supply_drainage': return 'Water & Drainage Design';
       case 'structural_engineering': return 'Structural Design';
-      case 'consultancy_pmc_dpr': return 'PMC / DPR';
-      case 'civil_construction': return 'Civil Works';
-      default: return 'General Civil';
+      case 'consultancy_pmc_dpr': return 'PMC / DPR Consultancy';
+      default: return 'Design & Consultancy';
     }
   }, []);
 
@@ -128,7 +127,7 @@ export const TenderTable: React.FC<TenderTableProps> = ({
         <div className="table-title-group">
           <h2 className="table-title">
             <Building size={18} color="#6366f1" />
-            <span>Latest Discovered Civil Tenders</span>
+            <span>Latest Discovered Design & Consultancy Tenders</span>
             <span className="table-count-badge">
               {tenders.length} displayed
             </span>

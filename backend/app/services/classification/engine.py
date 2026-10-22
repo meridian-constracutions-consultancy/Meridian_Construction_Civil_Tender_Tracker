@@ -69,30 +69,30 @@ class ClassificationEngine:
         for disq in self.disqualifying_negatives:
             # Word boundary check for the disqualifier
             if re.search(r'\b' + re.escape(disq) + r'\b', title_lower):
-                # Verify if it's genuinely civil before rejecting (e.g. "construction of medical hospital building" is valid civil)
-                has_strong_civil = any(
+                # Verify if it has explicit design/consultancy context before rejecting (e.g. "design of retaining wall")
+                has_design_context = any(
                     strong in title_lower for strong in [
-                        "construction of", "civil works", "building construction",
-                        "repair of road", "construction of hospital"
+                        "design", "dpr", "consultan", "architect", "structural",
+                        "proof check", "vetting", "feasibility", "audit", "survey"
                     ]
                 )
-                if not has_strong_civil:
+                if not has_design_context:
                     return ClassificationResult(
                         is_civil_construction=False,
                         category_id=None,
                         category_name=None,
                         score=0.0,
                         matched_keywords=[disq],
-                        reason=f"Disqualified: Contains non-civil keyword '{disq}' without strong civil context"
+                        reason=f"Disqualified: Physical execution/non-design keyword '{disq}' without design context"
                     )
 
         # Step 2: Product category bonus from GePNIC portal
         base_score = 0.0
         portal_matches: List[str] = []
-        if "civil" in prod_cat_lower:
-            base_score += 0.4
+        if "consult" in prod_cat_lower or "design" in prod_cat_lower:
+            base_score += 0.3
             portal_matches.append(f"portal_product_category:{product_category}")
-        elif prod_cat_lower in ["works", "construction works", "roads/bridge", "buildings"]:
+        elif "architecture" in prod_cat_lower or "survey" in prod_cat_lower:
             base_score += 0.3
             portal_matches.append(f"portal_product_category:{product_category}")
 
@@ -100,7 +100,17 @@ class ClassificationEngine:
         best_category_id = None
         best_category_name = None
         best_category_score = 0.0
+        best_weighted_score = 0.0
         all_matched_keywords: List[str] = list(portal_matches)
+
+        category_weights = {
+            "water_supply_drainage": 1.3,
+            "bridges_flyovers": 1.25,
+            "metro_railways": 1.25,
+            "roads_highways": 1.2,
+            "structural_engineering": 1.15,
+            "consultancy_pmc_dpr": 1.0,
+        }
 
         for cat in self.categories:
             cat_id = cat["id"]
@@ -121,11 +131,11 @@ class ClassificationEngine:
                         cat_score += 0.20
                         cat_keywords_matched.append(kw)
 
-            # Domain specific categories get priority over generic civil works
-            priority_bonus = 0.05 if cat_id not in ("civil_construction",) else 0.0
-            adjusted_score = cat_score + (priority_bonus if cat_score > 0 else 0.0)
+            # Domain-specific categories get priority over general PMC/consultancy container
+            weighted_score = cat_score * category_weights.get(cat_id, 1.0) if cat_score > 0 else 0.0
 
-            if adjusted_score > best_category_score:
+            if weighted_score > best_weighted_score:
+                best_weighted_score = weighted_score
                 best_category_score = cat_score
                 best_category_id = cat_id
                 best_category_name = cat_name
@@ -136,32 +146,28 @@ class ClassificationEngine:
 
         total_score = min(1.0, base_score + best_category_score)
         
-        # Determine civil classification threshold
-        is_civil = False
+        # Determine design & consultancy classification threshold
+        is_design_consultancy = False
         reason_parts = []
 
-        if total_score >= 0.35:
-            is_civil = True
-            reason_parts.append(f"High-confidence rule match (score {round(total_score, 2)}) in '{best_category_name}'")
-        elif "civil" in prod_cat_lower:
-            is_civil = True
-            if not best_category_id:
-                best_category_id = "civil_construction"
-                best_category_name = "Civil Construction & Works"
-            reason_parts.append("Official portal designated Product Category as Civil Works")
+        if best_category_score >= 0.20 and best_category_id:
+            is_design_consultancy = True
+            total_score = min(1.0, best_category_score + (0.2 if "consult" in prod_cat_lower or "design" in prod_cat_lower else 0.0))
+            reason_parts.append(f"Design & Consultancy match (score {round(total_score, 2)}) in '{best_category_name}'")
         else:
-            is_civil = False
-            reason_parts.append("Insufficient civil construction indicators")
+            is_design_consultancy = False
+            total_score = 0.0
+            reason_parts.append("Pure contractor/physical execution work (lacks design, structural, architectural, or consultancy indicators)")
 
         if unique_matches:
             reason_parts.append(f"Matched signals: {', '.join(unique_matches[:5])}")
 
         return ClassificationResult(
-            is_civil_construction=is_civil,
-            category_id=best_category_id if is_civil else None,
-            category_name=best_category_name if is_civil else None,
+            is_civil_construction=is_design_consultancy,
+            category_id=best_category_id if is_design_consultancy else None,
+            category_name=best_category_name if is_design_consultancy else None,
             score=total_score,
-            matched_keywords=unique_matches,
+            matched_keywords=unique_matches if is_design_consultancy else [],
             reason="; ".join(reason_parts)
         )
 

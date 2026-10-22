@@ -41,17 +41,25 @@ class BackgroundScheduler:
             from app.models.tender import Category
             
             categories_to_seed = [
-                {"id": "civil_construction", "name": "Civil Construction & Works", "description": "Building construction, general civil works, restoration"},
-                {"id": "roads_highways", "name": "Roads & Highways", "description": "Highways, expressways, asphalt roads, pavement, culverts"},
-                {"id": "bridges_flyovers", "name": "Bridges, ROBs & Flyovers", "description": "Bridges, flyovers, ROBs, RUBs, underpasses, viaducts"},
-                {"id": "metro_railways", "name": "Metro & Railways (JMRC, IRCON, DFCCIL, Indian Railways)", "description": "Metro rail, railway track doubling, stations, DFCCIL, JMRC, IRCON"},
-                {"id": "water_supply_drainage", "name": "Water Supply & Drainage", "description": "Water supply schemes, pipelines, sewerage, drainage networks"},
-                {"id": "structural_engineering", "name": "Structural Engineering & Design", "description": "Structural analysis, RCC/steel design, retrofitting, audits"},
-                {"id": "consultancy_pmc_dpr", "name": "PMC, DPR & Engineering Consultancy", "description": "Detailed project reports, architectural design, project management consultancy"}
+                {"id": "structural_engineering", "name": "Structural Engineering & Design", "description": "Structural analysis, RCC/steel design, retrofitting, proof checking, structural audits"},
+                {"id": "consultancy_pmc_dpr", "name": "Architecture, PMC & DPR Consultancy", "description": "Detailed project reports, architectural design, project management consultancy"},
+                {"id": "bridges_flyovers", "name": "Bridges, ROBs & Flyovers Design", "description": "Detailed design, DPR, and proof checking for bridges, flyovers, ROBs, RUBs"},
+                {"id": "metro_railways", "name": "Metro & Railway Design / Consultancy", "description": "Detailed design consultancy, DPR, alignment, and station design for JMRC, DMRC, IRCON, DFCCIL"},
+                {"id": "roads_highways", "name": "Highways & Roads Design / DPR Consultancy", "description": "DPR, feasibility studies, detailed engineering consultancy for NHAI, PWD, RSRDC"},
+                {"id": "water_supply_drainage", "name": "Water Supply & Drainage Design", "description": "Hydraulic modeling, pipeline design, WTP/STP design, sewerage and drainage network design"}
             ]
             for cat_data in categories_to_seed:
-                if not db.get(Category, cat_data["id"]):
+                existing_cat = db.get(Category, cat_data["id"])
+                if not existing_cat:
                     db.add(Category(**cat_data))
+                else:
+                    existing_cat.name = cat_data["name"]
+                    existing_cat.description = cat_data["description"]
+                    existing_cat.is_active = True
+
+            old_cat = db.get(Category, "civil_construction")
+            if old_cat:
+                db.delete(old_cat)
 
             sources_to_seed = [
                 {
