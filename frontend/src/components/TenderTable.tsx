@@ -9,6 +9,7 @@ interface TenderTableProps {
   sortBy: string;
   order: 'asc' | 'desc';
   onSortChange: (column: string) => void;
+  isCivilOnly?: boolean;
 }
 
 export const TenderTable: React.FC<TenderTableProps> = ({
@@ -18,6 +19,7 @@ export const TenderTable: React.FC<TenderTableProps> = ({
   sortBy,
   order,
   onSortChange,
+  isCivilOnly = true,
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   // View mode: 'auto' (cards on mobile, table on desktop), or explicit 'table' / 'cards'
@@ -127,7 +129,7 @@ export const TenderTable: React.FC<TenderTableProps> = ({
         <div className="table-title-group">
           <h2 className="table-title">
             <Building size={18} color="#6366f1" />
-            <span>Latest Discovered Design & Consultancy Tenders</span>
+            <span>{isCivilOnly ? 'Latest Discovered Design & Consultancy Tenders' : 'Latest Discovered Government Tenders (All Categories)'}</span>
             <span className="table-count-badge">
               {tenders.length} displayed
             </span>

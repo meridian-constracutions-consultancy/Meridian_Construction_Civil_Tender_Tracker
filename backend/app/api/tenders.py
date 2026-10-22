@@ -79,19 +79,19 @@ def list_tenders(
     now = datetime.utcnow()
     total_count = db.scalar(select(func.count(Tender.id))) or 0
     civil_count = db.scalar(select(func.count(Tender.id)).where(Tender.is_civil_construction == True)) or 0
-    closing_soon_count = db.scalar(
-        select(func.count(Tender.id)).where(
-            Tender.bid_submission_deadline >= now,
-            Tender.bid_submission_deadline <= now + timedelta(days=7)
-        )
-    ) or 0
+    closing_soon_query = select(func.count(Tender.id)).where(
+        Tender.bid_submission_deadline >= now,
+        Tender.bid_submission_deadline <= now + timedelta(days=7)
+    )
+    if is_civil_only:
+        closing_soon_query = closing_soon_query.where(Tender.is_civil_construction == True)
+    closing_soon_count = db.scalar(closing_soon_query) or 0
+
     today_threshold = now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(hours=6)
-    today_count = db.scalar(
-        select(func.count(Tender.id)).where(
-            Tender.is_civil_construction == True,
-            Tender.published_date >= today_threshold
-        )
-    ) or 0
+    today_query = select(func.count(Tender.id)).where(Tender.published_date >= today_threshold)
+    if is_civil_only:
+        today_query = today_query.where(Tender.is_civil_construction == True)
+    today_count = db.scalar(today_query) or 0
 
     # Query matching count
     query_count = select(func.count(Tender.id))

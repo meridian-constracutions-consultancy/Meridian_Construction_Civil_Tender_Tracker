@@ -270,7 +270,7 @@ export const App: React.FC = () => {
         closingSoonCount={stats.closingSoonCount}
         activeSourcesCount={sources.length}
         todayCount={stats.todayCount}
-        onFilterToday={() => handleFilterChange({ listed_today: !filters.listed_today })}
+        onFilterToday={() => handleFilterChange({ listed_today: !filters.listed_today, is_civil_only: true })}
       />
 
       {/* Filter and Search Bar */}
@@ -288,6 +288,7 @@ export const App: React.FC = () => {
         sortBy={filters.sort_by}
         order={filters.order}
         onSortChange={handleSortChange}
+        isCivilOnly={filters.is_civil_only}
       />
 
       {/* Source Monitoring & Health Status */}
