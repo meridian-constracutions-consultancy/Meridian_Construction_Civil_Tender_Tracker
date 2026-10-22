@@ -9,12 +9,13 @@ COPY frontend/ ./
 RUN npm run build
 
 # Stage 2: Production Python Backend
-FROM python:3.13-slim AS runner
+FROM python:3.12-slim AS runner
 WORKDIR /app
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1
+    PIP_NO_CACHE_DIR=1 \
+    PYTHONPATH=/app/backend
 
 # Install system dependencies (curl for healthcheck, tesseract for OCR)
 RUN apt-get update && apt-get install -y --no-install-recommends \
