@@ -1,6 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
+from app.core.config import settings
 from app.core.security import (
     hash_password,
     verify_password,
@@ -80,10 +81,24 @@ def test_malware_file_rejection():
     assert danger_sh is False
 
 def test_api_auth_login_and_me_flow():
+    # Ensure test admin credentials match dynamic settings
+    from sqlalchemy.orm import Session
+    from sqlalchemy import select
+    from app.db.session import engine
+    from app.models.user import User
+
+    with Session(engine) as db:
+        admin = db.execute(select(User).where(User.username == settings.DEFAULT_ADMIN_USERNAME)).scalar_one_or_none()
+        if admin:
+            h, salt = hash_password(settings.DEFAULT_ADMIN_PASSWORD)
+            admin.password_hash = h
+            admin.password_salt = salt
+            db.commit()
+
     # Admin Login
     response = client.post(
         "/api/auth/login",
-        json={"username_or_email": "admin", "password": "Admin@Civil2026!"}
+        json={"username_or_email": settings.DEFAULT_ADMIN_USERNAME, "password": settings.DEFAULT_ADMIN_PASSWORD}
     )
     assert response.status_code == 200
     data = response.json()

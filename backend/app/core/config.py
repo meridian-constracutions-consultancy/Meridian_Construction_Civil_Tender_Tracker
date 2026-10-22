@@ -1,4 +1,5 @@
 import os
+import secrets
 from typing import List
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
@@ -33,9 +34,9 @@ class Settings(BaseSettings):
         default=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"]
     )
     
-    # Security Credentials & Auth
+    # Security Credentials & Auth (Zero hardcoded secrets; dynamically generated unless set via environment)
     JWT_SECRET_KEY: str = Field(
-        default="civiltender-defense-grade-jwt-secret-key-2026-secure!@#$"
+        default_factory=lambda: secrets.token_urlsafe(32)
     )
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 Hours
@@ -43,8 +44,10 @@ class Settings(BaseSettings):
     MAX_FAILED_LOGIN_ATTEMPTS: int = 5
     ACCOUNT_LOCKOUT_MINUTES: int = 15
     DEFAULT_ADMIN_USERNAME: str = "admin"
-    DEFAULT_ADMIN_EMAIL: str = "admin@civiltender.in"
-    DEFAULT_ADMIN_PASSWORD: str = "Admin@Civil2026!"
+    DEFAULT_ADMIN_EMAIL: str = "admin@example.com"
+    DEFAULT_ADMIN_PASSWORD: str = Field(
+        default_factory=lambda: secrets.token_urlsafe(16)
+    )
     
     # Document Processing & OCR
     MAX_DOCUMENT_SIZE_BYTES: int = 25 * 1024 * 1024  # 25 MB
