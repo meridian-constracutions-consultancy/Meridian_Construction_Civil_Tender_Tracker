@@ -85,7 +85,8 @@ export const TenderTable: React.FC<TenderTableProps> = ({
   const getCategoryLabel = useCallback((id?: string) => {
     switch (id) {
       case 'roads_highways': return 'Roads & Highways';
-      case 'bridges_flyovers': return 'Bridges & Flyovers';
+      case 'bridges_flyovers': return 'Bridges & ROBs';
+      case 'metro_railways': return 'Metro & Railways';
       case 'water_supply_drainage': return 'Water & Drainage';
       case 'structural_engineering': return 'Structural Design';
       case 'consultancy_pmc_dpr': return 'PMC / DPR';
@@ -94,18 +95,31 @@ export const TenderTable: React.FC<TenderTableProps> = ({
     }
   }, []);
 
+  const isListedToday = useCallback((dateStr?: string) => {
+    if (!dateStr) return false;
+    try {
+      const pub = new Date(dateStr);
+      const now = new Date();
+      // Within last 24 hours
+      return (now.getTime() - pub.getTime()) <= 24 * 3600 * 1000;
+    } catch {
+      return false;
+    }
+  }, []);
+
   // Compute rendered items with precomputed flags to ensure 0-lag 60fps rendering
   const processedTenders = useMemo(() => {
     return tenders.map((t) => ({
       ...t,
       closingSoon: isClosingSoon(t.bid_submission_deadline),
+      isToday: isListedToday(t.published_date),
       categoryLabel: getCategoryLabel(t.category_id),
       formattedValue: formatIndianCurrency(t.estimated_value),
       formattedEmd: formatIndianCurrency(t.emd_amount),
       formattedPublished: formatDate(t.published_date),
       formattedClosing: formatDate(t.bid_submission_deadline),
     }));
-  }, [tenders, isClosingSoon, getCategoryLabel, formatIndianCurrency, formatDate]);
+  }, [tenders, isClosingSoon, isListedToday, getCategoryLabel, formatIndianCurrency, formatDate]);
 
   return (
     <div className={`table-container view-mode-${viewMode}`}>
@@ -244,7 +258,12 @@ export const TenderTable: React.FC<TenderTableProps> = ({
 
                   {/* Published Date */}
                   <td style={{ whiteSpace: 'nowrap', color: '#94a3b8', fontSize: '12px' }}>
-                    {t.formattedPublished}
+                    <div>{t.formattedPublished}</div>
+                    {t.isToday && (
+                      <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.4)', marginTop: '3px', fontSize: '10px', padding: '1px 5px', display: 'inline-block' }}>
+                        🔥 Listed Today
+                      </span>
+                    )}
                   </td>
 
                   {/* Closing Date */}
@@ -322,6 +341,11 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                     <span className="badge badge-civil">
                       {t.categoryLabel}
                     </span>
+                    {t.isToday && (
+                      <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.4)' }}>
+                        🔥 Listed Today
+                      </span>
+                    )}
                     {t.status === 'AMENDED' && <span className="badge badge-amended">Amended</span>}
                     {t.closingSoon && <span className="badge badge-closing-soon">Closing Soon</span>}
                   </div>

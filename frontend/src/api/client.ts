@@ -18,6 +18,7 @@ export async function fetchTenders(
   if (filters.state) params.set('state', filters.state);
   if (filters.source_id) params.set('source_id', filters.source_id);
   if (filters.closing_soon) params.set('closing_soon', 'true');
+  if (filters.listed_today) params.set('listed_today', 'true');
   if (filters.sort_by) params.set('sort_by', filters.sort_by);
   if (filters.order) params.set('order', filters.order);
 
@@ -108,5 +109,6 @@ export function getExportUrl(type: 'csv' | 'excel', filters: Partial<FilterState
   if (filters.state) params.set('state', filters.state);
   if (filters.source_id) params.set('source_id', filters.source_id);
   if (filters.closing_soon) params.set('closing_soon', 'true');
+  if (filters.listed_today) params.set('listed_today', 'true');
   return `${BASE_URL}/export/${type}?${params.toString()}`;
 }

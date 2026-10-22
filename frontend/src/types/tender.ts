@@ -75,6 +75,7 @@ export interface TenderListResponse {
   matching_count: number;
   civil_count: number;
   closing_soon_count: number;
+  today_count?: number;
   limit: number;
   offset: number;
   items: TenderListItem[];
@@ -104,6 +105,7 @@ export interface FilterState {
   source_id: string;
   value_range: string;
   closing_soon: boolean;
+  listed_today?: boolean;
   sort_by: string;
   order: 'asc' | 'desc';
 }

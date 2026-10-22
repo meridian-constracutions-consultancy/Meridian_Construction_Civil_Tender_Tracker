@@ -88,6 +88,7 @@ class TenderListResponse(BaseModel):
     matching_count: int
     civil_count: int
     closing_soon_count: int
+    today_count: int = 0
     limit: int
     offset: int
     items: List[TenderListItem]

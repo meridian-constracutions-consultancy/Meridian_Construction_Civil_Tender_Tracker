@@ -1,18 +1,22 @@
 import React from 'react';
-import { Database, HardHat, Clock, Globe } from 'lucide-react';
+import { Database, HardHat, Clock, Globe, Flame } from 'lucide-react';
 
 interface StatCardsProps {
   totalCount: number;
   civilCount: number;
   closingSoonCount: number;
   activeSourcesCount: number;
+  todayCount?: number;
+  onFilterToday?: () => void;
 }
 
 export const StatCards: React.FC<StatCardsProps> = ({
   totalCount,
   civilCount,
   closingSoonCount,
-  activeSourcesCount
+  activeSourcesCount,
+  todayCount = 0,
+  onFilterToday
 }) => {
   return (
     <div className="stats-grid">
@@ -36,6 +40,21 @@ export const StatCards: React.FC<StatCardsProps> = ({
         </div>
       </div>
 
+      <div 
+        className="stat-card stat-card-clickable" 
+        onClick={onFilterToday}
+        style={{ cursor: onFilterToday ? 'pointer' : 'default', border: todayCount > 0 ? '1px solid rgba(239, 68, 68, 0.4)' : undefined }}
+        title="Click to view all tenders listed today"
+      >
+        <div className="stat-icon-wrapper" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
+          <Flame size={22} />
+        </div>
+        <div className="stat-content">
+          <span className="stat-value" style={{ color: '#ef4444' }}>{todayCount.toLocaleString()}</span>
+          <span className="stat-label">🔥 Listed Today</span>
+        </div>
+      </div>
+
       <div className="stat-card">
         <div className="stat-icon-wrapper stat-icon-closing">
           <Clock size={22} />
@@ -52,7 +71,7 @@ export const StatCards: React.FC<StatCardsProps> = ({
         </div>
         <div className="stat-content">
           <span className="stat-value">{activeSourcesCount}</span>
-          <span className="stat-label">Active Portals</span>
+          <span className="stat-label">Live Active Portals</span>
         </div>
       </div>
     </div>

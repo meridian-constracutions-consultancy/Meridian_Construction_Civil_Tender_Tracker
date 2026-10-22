@@ -56,6 +56,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     filters.value_range ||
     !filters.is_civil_only ||
     filters.closing_soon ||
+    filters.listed_today ||
     filters.source_id
   );
 
@@ -96,11 +97,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         >
           <option value="">All Civil Categories</option>
           <option value="civil_construction">Civil Works & Buildings</option>
-          <option value="roads_highways">Roads & Highways</option>
-          <option value="bridges_flyovers">Bridges & Flyovers</option>
+          <option value="roads_highways">Roads & Highways (PWD/RSRDC/NHAI)</option>
+          <option value="bridges_flyovers">Bridges, ROBs & Flyovers</option>
+          <option value="metro_railways">Metro & Railways (JMRC/IRCON/DFCCIL)</option>
+          <option value="structural_engineering">Structural Engineering & Design</option>
+          <option value="consultancy_pmc_dpr">PMC, DPR & Architecture Consultancy</option>
           <option value="water_supply_drainage">Water Supply & Drainage</option>
-          <option value="structural_engineering">Structural Engineering</option>
-          <option value="consultancy_pmc_dpr">PMC, DPR & Consultancy</option>
         </select>
 
         {/* State Dropdown */}
@@ -162,10 +164,66 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           </button>
 
           <button
+            className={`toggle-filter-chip ${filters.listed_today ? 'active' : ''}`}
+            onClick={() => onFilterChange({ listed_today: !filters.listed_today })}
+          >
+            <span>🔥 Listed Today</span>
+          </button>
+
+          <button
             className={`toggle-filter-chip ${filters.closing_soon ? 'active' : ''}`}
             onClick={() => onFilterChange({ closing_soon: !filters.closing_soon })}
           >
             <span>⏰ Closing in 7 Days</span>
+          </button>
+
+          <button
+            className={`toggle-filter-chip ${filters.category_id === 'bridges_flyovers' ? 'active' : ''}`}
+            onClick={() => onFilterChange({ category_id: filters.category_id === 'bridges_flyovers' ? '' : 'bridges_flyovers' })}
+          >
+            <span>🌉 ROB & Bridges</span>
+          </button>
+
+          <button
+            className={`toggle-filter-chip ${filters.category_id === 'metro_railways' ? 'active' : ''}`}
+            onClick={() => onFilterChange({ category_id: filters.category_id === 'metro_railways' ? '' : 'metro_railways' })}
+          >
+            <span>🚇 Metro & Railways (JMRC/IRCON/DFCCIL)</span>
+          </button>
+
+          <button
+            className={`toggle-filter-chip ${filters.category_id === 'structural_engineering' ? 'active' : ''}`}
+            onClick={() => onFilterChange({ category_id: filters.category_id === 'structural_engineering' ? '' : 'structural_engineering' })}
+          >
+            <span>🏛️ Architecture & Structure Design</span>
+          </button>
+
+          <button
+            className={`toggle-filter-chip ${filters.category_id === 'consultancy_pmc_dpr' ? 'active' : ''}`}
+            onClick={() => onFilterChange({ category_id: filters.category_id === 'consultancy_pmc_dpr' ? '' : 'consultancy_pmc_dpr' })}
+          >
+            <span>📐 PMC & Consultancy</span>
+          </button>
+
+          <button
+            className={`toggle-filter-chip ${filters.search === 'PWD' ? 'active' : ''}`}
+            onClick={() => onFilterChange({ search: filters.search === 'PWD' ? '' : 'PWD' })}
+          >
+            <span>🛣️ PWD / RSRDC</span>
+          </button>
+
+          <button
+            className={`toggle-filter-chip ${filters.search === 'NHAI' ? 'active' : ''}`}
+            onClick={() => onFilterChange({ search: filters.search === 'NHAI' ? '' : 'NHAI' })}
+          >
+            <span>🛣️ NHAI</span>
+          </button>
+
+          <button
+            className={`toggle-filter-chip ${filters.search === 'JDA' ? 'active' : ''}`}
+            onClick={() => onFilterChange({ search: filters.search === 'JDA' ? '' : 'JDA' })}
+          >
+            <span>🏢 JDA</span>
           </button>
 
           <button

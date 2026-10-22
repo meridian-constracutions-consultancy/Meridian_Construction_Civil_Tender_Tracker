@@ -8,7 +8,8 @@
         "earthwork", "masonry", "plastering", "flooring", "concrete", "rcc", "pavement",
         "renovation work", "restoration work", "repair and maintenance of building",
         "boundary wall", "compound wall", "shed construction", "rehabilitation of building",
-        "site development", "leveling", "excavation", "retaining wall"
+        "site development", "leveling", "excavation", "retaining wall", "jda", "jaipur development authority",
+        "uit", "urban improvement trust", "rhb", "rajasthan housing board", "dlb", "nagar nigam", "cpwd"
       ],
       "phrases": [
         "construction of building", "civil maintenance", "civil repair", "construction of compound wall",
@@ -22,7 +23,7 @@
         "road", "roads", "highway", "highways", "pavement", "bituminous", "asphalt",
         "cc road", "bt road", "wbm", "macadam", "culvert", "causeway", "strengthening of road",
         "widening of road", "resurfacing", "pot hole repair", "restoration work in road",
-        "pmgsy", "pwd road", "nhai", "expressway"
+        "pmgsy", "pwd road", "pwd", "pwd rajasthan", "rsrdc", "nhai", "expressway", "morth", "ring road"
       ],
       "phrases": [
         "construction of road", "restoration of road", "widening and strengthening",
@@ -34,13 +35,62 @@
       "id": "bridges_flyovers",
       "name": "Bridges & Flyovers",
       "positive_keywords": [
-        "bridge", "bridges", "flyover", "flyovers", "robing", "robs", "underpass", "subway",
+        "bridge", "bridges", "flyover", "flyovers", "rob", "robs", "railway over bridge",
+        "road over bridge", "rub", "road under bridge", "underpass", "subway",
         "viaduct", "box culvert", "girder", "pier", "abutment", "bridge deck", "expansion joint",
-        "rcc bridge", "high level bridge"
+        "rcc bridge", "high level bridge", "elevated road"
       ],
       "phrases": [
         "construction of bridge", "construction of flyover", "major bridge", "minor bridge",
-        "high level bridge", "submersible bridge", "river bridge", "rcc bridge"
+        "high level bridge", "submersible bridge", "river bridge", "rcc bridge",
+        "construction of rob", "construction of rub"
+      ]
+    },
+    {
+      "id": "metro_railways",
+      "name": "Metro & Railways (JMRC, IRCON, DFCCIL, Indian Railways)",
+      "positive_keywords": [
+        "metro", "jmrc", "jaipur metro", "delhi metro", "dmrc", "metro rail",
+        "ircon", "indian railway", "railways", "railway", "northern railway", "north western railway",
+        "nwr", "dfccil", "dedicated freight corridor", "rail track", "railway track", "platform",
+        "doubling", "electrification", "ballast", "station redevelopment", "track renewal", "ohe"
+      ],
+      "phrases": [
+        "indian railway", "metro rail project", "jaipur metro rail", "dedicated freight corridor",
+        "railway track works", "track renewal work", "station redevelopment"
+      ]
+    },
+    {
+      "id": "structural_engineering",
+      "name": "Structural Engineering & Design",
+      "positive_keywords": [
+        "structural design", "structure design", "structural drawing", "structure drawing",
+        "structural analysis", "rcc design", "steel structure", "structural stability",
+        "structural audit", "retrofitting", "foundation design", "soil investigation",
+        "geotechnical", "seismic design", "earthquake resistant", "structural strengthening",
+        "stability certificate", "structural vetting", "proof checking", "structural consultant"
+      ],
+      "phrases": [
+        "structural consultancy", "structural stability certificate", "structural safety audit",
+        "design of rcc", "structural consultant", "retrofitting and strengthening",
+        "structure design and drawing", "proof checking of structural design"
+      ]
+    },
+    {
+      "id": "consultancy_pmc_dpr",
+      "name": "PMC, DPR & Engineering Consultancy",
+      "positive_keywords": [
+        "dpr", "detailed project report", "pmc", "project management consultancy",
+        "architecture design", "architectural design", "architectural planning",
+        "architectural consultancy", "engineering consultancy", "feasibility study",
+        "third party inspection", "tpi", "quality audit", "quantity surveying",
+        "boq preparation", "technical inspection", "master plan", "facade design",
+        "urban design", "landscape design"
+      ],
+      "phrases": [
+        "preparation of dpr", "project management consultant", "third party quality control",
+        "detailed project report for", "architectural and structural consultancy",
+        "architecture and engineering consultancy", "comprehensive architectural consultancy"
       ]
     },
     {
@@ -56,34 +106,6 @@
         "water supply scheme", "urban water supply", "rural water supply",
         "laying of pipeline", "construction of drain", "underground drainage",
         "distribution network", "sewer line"
-      ]
-    },
-    {
-      "id": "structural_engineering",
-      "name": "Structural Engineering & Design",
-      "positive_keywords": [
-        "structural design", "structural drawing", "structural analysis", "rcc design",
-        "steel structure", "structural stability", "structural audit", "retrofitting",
-        "foundation design", "soil investigation", "geotechnical", "seismic design",
-        "earthquake resistant", "structural strengthening", "stability certificate"
-      ],
-      "phrases": [
-        "structural consultancy", "structural stability certificate", "structural safety audit",
-        "design of rcc", "structural consultant", "retrofitting and strengthening"
-      ]
-    },
-    {
-      "id": "consultancy_pmc_dpr",
-      "name": "PMC, DPR & Engineering Consultancy",
-      "positive_keywords": [
-        "dpr", "detailed project report", "pmc", "project management consultancy",
-        "architectural consultancy", "engineering consultancy", "feasibility study",
-        "third party inspection", "tpi", "quality audit", "quantity surveying",
-        "boq preparation", "technical inspection"
-      ],
-      "phrases": [
-        "preparation of dpr", "project management consultant", "third party quality control",
-        "detailed project report for", "architectural and structural consultancy"
       ]
     }
   ],

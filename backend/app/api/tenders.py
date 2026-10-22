@@ -23,6 +23,7 @@ def list_tenders(
     min_value: Optional[float] = Query(None, ge=0),
     max_value: Optional[float] = Query(None, ge=0),
     closing_soon: bool = Query(False, description="Filter tenders closing within 7 days"),
+    listed_today: bool = Query(False, description="Filter tenders published today or in the last 24 hours"),
     sort_by: str = Query("published_date", pattern="^(published_date|bid_submission_deadline|estimated_value|created_at)$"),
     order: str = Query("desc", pattern="^(asc|desc)$"),
     db: Session = Depends(get_db)
@@ -57,6 +58,10 @@ def list_tenders(
         conditions.append(Tender.bid_submission_deadline >= now)
         conditions.append(Tender.bid_submission_deadline <= seven_days)
 
+    if listed_today:
+        today_threshold = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(hours=6)
+        conditions.append(Tender.published_date >= today_threshold)
+
     if search:
         term = f"%{search.strip()}%"
         conditions.append(
@@ -78,6 +83,13 @@ def list_tenders(
         select(func.count(Tender.id)).where(
             Tender.bid_submission_deadline >= now,
             Tender.bid_submission_deadline <= now + timedelta(days=7)
+        )
+    ) or 0
+    today_threshold = now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(hours=6)
+    today_count = db.scalar(
+        select(func.count(Tender.id)).where(
+            Tender.is_civil_construction == True,
+            Tender.published_date >= today_threshold
         )
     ) or 0
 
@@ -108,6 +120,7 @@ def list_tenders(
         matching_count=matching_count,
         civil_count=civil_count,
         closing_soon_count=closing_soon_count,
+        today_count=today_count,
         limit=limit,
         offset=offset,
         items=items

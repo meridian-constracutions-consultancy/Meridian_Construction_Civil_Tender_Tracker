@@ -43,10 +43,11 @@ class BackgroundScheduler:
             categories_to_seed = [
                 {"id": "civil_construction", "name": "Civil Construction & Works", "description": "Building construction, general civil works, restoration"},
                 {"id": "roads_highways", "name": "Roads & Highways", "description": "Highways, expressways, asphalt roads, pavement, culverts"},
-                {"id": "bridges_flyovers", "name": "Bridges & Flyovers", "description": "Bridges, flyovers, overbridges, underpasses, viaducts"},
+                {"id": "bridges_flyovers", "name": "Bridges, ROBs & Flyovers", "description": "Bridges, flyovers, ROBs, RUBs, underpasses, viaducts"},
+                {"id": "metro_railways", "name": "Metro & Railways (JMRC, IRCON, DFCCIL, Indian Railways)", "description": "Metro rail, railway track doubling, stations, DFCCIL, JMRC, IRCON"},
                 {"id": "water_supply_drainage", "name": "Water Supply & Drainage", "description": "Water supply schemes, pipelines, sewerage, drainage networks"},
                 {"id": "structural_engineering", "name": "Structural Engineering & Design", "description": "Structural analysis, RCC/steel design, retrofitting, audits"},
-                {"id": "consultancy_pmc_dpr", "name": "PMC, DPR & Engineering Consultancy", "description": "Detailed project reports, project management consultancy, inspections"}
+                {"id": "consultancy_pmc_dpr", "name": "PMC, DPR & Engineering Consultancy", "description": "Detailed project reports, architectural design, project management consultancy"}
             ]
             for cat_data in categories_to_seed:
                 if not db.get(Category, cat_data["id"]):
@@ -81,7 +82,55 @@ class BackgroundScheduler:
                     db.add(new_src)
             db.commit()
 
-    async def run_collection_for_source(self, source_id: str, limit: int = 15) -> Dict[str, Any]:
+            # Seed pre-packaged verified tenders if database is currently empty (e.g. fresh cloud deploy)
+            from app.models.tender import Tender
+            from sqlalchemy import func
+            existing_tender_count = db.scalar(select(func.count(Tender.id))) or 0
+            if existing_tender_count == 0:
+                import os, json
+                seed_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "db", "seed_tenders.json")
+                if os.path.exists(seed_file):
+                    try:
+                        with open(seed_file, "r", encoding="utf-8") as sf:
+                            seed_items = json.load(sf)
+                            for s in seed_items:
+                                p_date = datetime.fromisoformat(s["published_date"]) if s.get("published_date") else None
+                                b_date = datetime.fromisoformat(s["bid_submission_deadline"]) if s.get("bid_submission_deadline") else None
+                                o_date = datetime.fromisoformat(s["bid_opening_date"]) if s.get("bid_opening_date") else None
+                                t_obj = Tender(
+                                    tender_id=s["tender_id"],
+                                    source_id=s["source_id"],
+                                    reference_number=s.get("reference_number"),
+                                    title=s["title"],
+                                    work_description=s.get("work_description"),
+                                    organization_name=s.get("organization_name"),
+                                    tender_category=s.get("tender_category"),
+                                    product_category=s.get("product_category"),
+                                    state=s.get("state"),
+                                    location=s.get("location"),
+                                    estimated_value=s.get("estimated_value"),
+                                    currency=s.get("currency", "INR"),
+                                    emd_amount=s.get("emd_amount"),
+                                    tender_fee=s.get("tender_fee"),
+                                    published_date=p_date,
+                                    bid_submission_deadline=b_date,
+                                    bid_opening_date=o_date,
+                                    is_civil_construction=s.get("is_civil_construction", True),
+                                    category_id=s.get("category_id"),
+                                    classification_score=s.get("classification_score", 0.9),
+                                    matched_keywords=s.get("matched_keywords"),
+                                    classification_reason=s.get("classification_reason"),
+                                    classification_method=s.get("classification_method"),
+                                    status=s.get("status", "ACTIVE"),
+                                    original_url=s.get("original_url")
+                                )
+                                db.add(t_obj)
+                            db.commit()
+                            logger.info(f"Successfully seeded {len(seed_items)} tenders into fresh database.")
+                    except Exception as err:
+                        logger.error(f"Error seeding initial tenders from JSON: {err}")
+
+    async def run_collection_for_source(self, source_id: str, limit: int = 50) -> Dict[str, Any]:
         """
         Executes an isolated collection job for a specific source.
         Ensures non-overlapping execution using per-source asyncio locks.

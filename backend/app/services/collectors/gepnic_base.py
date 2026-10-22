@@ -144,11 +144,11 @@ class GePNICBaseCollector(BaseCollector):
             logger.error(f"[{self.source_id}] Error in keyword search '{keyword}': {e}")
             return []
 
-    def collect(self, limit: int = 25) -> List[Dict[str, Any]]:
+    def collect(self, limit: int = 50) -> List[Dict[str, Any]]:
         """
-        Executes a collection run across portal keyword search ('civil'), homepage active tenders,
-        and closing date feeds.
-        Returns a list of parsed, classified tender records.
+        Executes a comprehensive collection run across portal multi-keyword searches,
+        homepage active tenders, and closing date feeds covering civil construction,
+        ROBs, metro, railways, highways, consultancy, and structural design.
         """
         tenders = []
         discovered_urls: Set[str] = set()
@@ -157,28 +157,44 @@ class GePNICBaseCollector(BaseCollector):
         with httpx.Client(verify=True, follow_redirects=True) as client:
             logger.info(f"[{self.source_id}] Starting collection run on {self.base_url}")
 
-            # Feed 1 (High Priority): Direct portal search for 'civil' keyword
-            civil_links = self.search_keyword_tenders(client, "civil")
+            # Targeted multi-keyword search rotation covering all user civil infrastructure categories
+            target_keywords = [
+                "civil", "construction", "road", "bridge", "rob", "railway",
+                "metro", "pwd", "nhai", "jda", "rsrdc", "consultancy",
+                "architecture", "structure", "dpr", "pmc"
+            ]
+            
+            candidate_links: List[Tuple[str, str]] = []
+            for kw in target_keywords:
+                try:
+                    kw_links = self.search_keyword_tenders(client, kw)
+                    for url, title in kw_links:
+                        if url not in discovered_urls:
+                            discovered_urls.add(url)
+                            candidate_links.append((url, title))
+                    if len(candidate_links) >= limit * 2:
+                        break
+                except Exception as e:
+                    logger.warning(f"[{self.source_id}] Keyword search error for '{kw}': {e}")
 
-            # Feed 2: Discover from Homepage Active Tenders table (only if needed)
-            home_links = []
-            if len(civil_links) < limit:
+            # Feed 2: Discover from Homepage Active Tenders table (if needed)
+            if len(candidate_links) < limit:
                 home_links = self.discover_tender_links(client, self.base_url)
+                for url, title in home_links:
+                    if url not in discovered_urls:
+                        discovered_urls.add(url)
+                        candidate_links.append((url, title))
 
-            # Feed 3: Discover from Tenders by Closing Date (only if needed)
-            closing_links = []
-            if len(civil_links) + len(home_links) < limit:
+            # Feed 3: Discover from Tenders by Closing Date (if needed)
+            if len(candidate_links) < limit:
                 closing_date_url = urljoin(self.base_url, "?page=FrontEndListTendersbyDate&service=page")
                 closing_links = self.discover_tender_links(client, closing_date_url)
+                for url, title in closing_links:
+                    if url not in discovered_urls:
+                        discovered_urls.add(url)
+                        candidate_links.append((url, title))
 
-            # Combine and deduplicate, prioritizing targeted 'civil' keyword results
-            candidate_links = []
-            for url, title in civil_links + home_links + closing_links:
-                if url not in discovered_urls:
-                    discovered_urls.add(url)
-                    candidate_links.append((url, title))
-
-            logger.info(f"[{self.source_id}] Processing up to {limit} candidate tenders...")
+            logger.info(f"[{self.source_id}] Collected {len(candidate_links)} unique candidate tender links. Processing up to {limit}...")
             
             # Stable direct URL pointing to the official active tenders lookup
             stable_portal_url = urljoin(self.base_url, "?page=FrontEndLatestActiveTenders&service=page")

@@ -23,6 +23,7 @@ export const App: React.FC = () => {
     totalCount: 0,
     civilCount: 0,
     closingSoonCount: 0,
+    todayCount: 0,
   });
 
   const [filters, setFilters] = useState<FilterState>({
@@ -33,6 +34,7 @@ export const App: React.FC = () => {
     source_id: '',
     value_range: '',
     closing_soon: false,
+    listed_today: false,
     sort_by: 'published_date',
     order: 'desc',
   });
@@ -56,6 +58,7 @@ export const App: React.FC = () => {
         totalCount: response.total_count,
         civilCount: response.civil_count,
         closingSoonCount: response.closing_soon_count,
+        todayCount: response.today_count || 0,
       });
       setLastUpdated(new Date());
     } catch (err: any) {
@@ -84,6 +87,7 @@ export const App: React.FC = () => {
         totalCount: tendersRes.total_count,
         civilCount: tendersRes.civil_count,
         closingSoonCount: tendersRes.closing_soon_count,
+        todayCount: tendersRes.today_count || 0,
       });
       setSources(sourcesRes);
       const now = new Date();
@@ -99,6 +103,7 @@ export const App: React.FC = () => {
             totalCount: fresh.total_count,
             civilCount: fresh.civil_count,
             closingSoonCount: fresh.closing_soon_count,
+            todayCount: fresh.today_count || 0,
           });
           const updateTime = new Date();
           setLastUpdated(updateTime);
@@ -204,6 +209,7 @@ export const App: React.FC = () => {
       source_id: '',
       value_range: '',
       closing_soon: false,
+      listed_today: false,
       sort_by: 'published_date',
       order: 'desc',
     });
@@ -263,6 +269,8 @@ export const App: React.FC = () => {
         civilCount={stats.civilCount}
         closingSoonCount={stats.closingSoonCount}
         activeSourcesCount={sources.length}
+        todayCount={stats.todayCount}
+        onFilterToday={() => handleFilterChange({ listed_today: !filters.listed_today })}
       />
 
       {/* Filter and Search Bar */}
