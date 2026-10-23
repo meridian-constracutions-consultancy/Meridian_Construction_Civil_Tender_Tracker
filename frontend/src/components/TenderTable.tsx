@@ -117,10 +117,24 @@ export const TenderTable: React.FC<TenderTableProps> = ({
   const isListedToday = useCallback((dateStr?: string) => {
     if (!dateStr) return false;
     try {
-      const pub = new Date(dateStr);
+      // Strictly match today's calendar date (avoid labeling yesterday's tenders as Listed Today)
+      const pubDatePrefix = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr.split(' ')[0];
       const now = new Date();
-      // Within last 24 hours
-      return (now.getTime() - pub.getTime()) <= 24 * 3600 * 1000;
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const todayPrefix = `${year}-${month}-${day}`;
+
+      if (pubDatePrefix === todayPrefix) {
+        return true;
+      }
+
+      const pub = new Date(dateStr);
+      return (
+        pub.getFullYear() === now.getFullYear() &&
+        pub.getMonth() === now.getMonth() &&
+        pub.getDate() === now.getDate()
+      );
     } catch {
       return false;
     }
