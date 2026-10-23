@@ -73,6 +73,14 @@ async def lifespan(app: FastAPI):
             except Exception as e:
                 logger.warning(f"Error loading custom keywords config on startup: {e}")
 
+        # Ensure database is synchronized with all verified seed tenders on every startup
+        from app.api.settings import sync_seed_endpoint
+        try:
+            sync_res = sync_seed_endpoint(db)
+            logger.info(f"Startup seed sync complete: {sync_res['message']}")
+        except Exception as e:
+            logger.warning(f"Error during startup seed sync: {e}")
+
     if settings.ENVIRONMENT != "testing":
         logger.info("Starting background collection scheduler...")
         await scheduler.start()

@@ -139,3 +139,96 @@ def update_keywords_settings(payload: KeywordsUpdateRequest, db: Session = Depen
         "message": f"Keywords saved successfully! Re-evaluated {len(all_tenders)} tenders ({reclassified_count} design/consultancy matches).",
         "config": current_config
     }
+
+@router.post("/sync-seed")
+def sync_seed_endpoint(db: Session = Depends(get_db)):
+    """
+    Manually triggers upsert synchronization of all verified tenders from seed_tenders.json.
+    Ensures complete parity across local and cloud environments.
+    """
+    import os, json, hashlib
+    from datetime import datetime
+    seed_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "db", "seed_tenders.json")
+    if not os.path.exists(seed_file):
+        raise HTTPException(status_code=404, detail="seed_tenders.json not found")
+
+    with open(seed_file, "r", encoding="utf-8") as sf:
+        seed_items = json.load(sf)
+
+    upserted_count = 0
+    for s in seed_items:
+        existing_t = db.query(Tender).filter(Tender.tender_id == s["tender_id"]).first()
+        p_date = datetime.fromisoformat(s["published_date"]) if s.get("published_date") else None
+        b_date = datetime.fromisoformat(s["bid_submission_deadline"]) if s.get("bid_submission_deadline") else None
+        o_date = datetime.fromisoformat(s["bid_opening_date"]) if s.get("bid_opening_date") else None
+        pre_date = datetime.fromisoformat(s["pre_bid_meeting_date"]) if s.get("pre_bid_meeting_date") else None
+        clar_date = datetime.fromisoformat(s["clarification_end_date"]) if s.get("clarification_end_date") else None
+        doc_start = datetime.fromisoformat(s["document_download_start_date"]) if s.get("document_download_start_date") else None
+        doc_end = datetime.fromisoformat(s["document_download_end_date"]) if s.get("document_download_end_date") else None
+
+        if existing_t:
+            existing_t.published_date = p_date
+            existing_t.bid_submission_deadline = b_date
+            existing_t.bid_opening_date = o_date
+            existing_t.pre_bid_meeting_date = pre_date
+            existing_t.clarification_end_date = clar_date
+            existing_t.document_download_start_date = doc_start
+            existing_t.document_download_end_date = doc_end
+            existing_t.is_civil_construction = s.get("is_civil_construction", True)
+            existing_t.is_joint_venture_allowed = s.get("is_joint_venture_allowed", True)
+            existing_t.is_sub_contracting_allowed = s.get("is_sub_contracting_allowed", True)
+            existing_t.bidding_type = s.get("bidding_type", "2-Cover (Technical + Financial BOQ)")
+            existing_t.covers_count = s.get("covers_count", 2)
+            existing_t.pre_bid_venue = s.get("pre_bid_venue", "Office of the Superintending Engineer / Chief Engineer (Procurement)")
+        else:
+            t_obj = Tender(
+                tender_id=s["tender_id"],
+                source_id=s.get("source_id", "central_gepnic"),
+                reference_number=s.get("reference_number"),
+                title=s["title"],
+                work_description=s.get("work_description"),
+                organization_name=s.get("organization_name"),
+                department=s.get("department"),
+                tender_category=s.get("tender_category"),
+                product_category=s.get("product_category"),
+                state=s.get("state"),
+                district=s.get("district"),
+                location=s.get("location"),
+                portal_name=s.get("portal_name"),
+                estimated_value=s.get("estimated_value"),
+                currency=s.get("currency", "INR"),
+                emd_amount=s.get("emd_amount"),
+                tender_fee=s.get("tender_fee"),
+                emd_exemption_allowed=s.get("emd_exemption_allowed"),
+                published_date=p_date,
+                bid_submission_deadline=b_date,
+                bid_opening_date=o_date,
+                pre_bid_meeting_date=pre_date,
+                clarification_end_date=clar_date,
+                document_download_start_date=doc_start,
+                document_download_end_date=doc_end,
+                is_civil_construction=s.get("is_civil_construction", True),
+                category_id=s.get("category_id"),
+                classification_score=s.get("classification_score", 0.95),
+                matched_keywords=s.get("matched_keywords"),
+                is_joint_venture_allowed=s.get("is_joint_venture_allowed", True),
+                is_sub_contracting_allowed=s.get("is_sub_contracting_allowed", True),
+                bidding_type=s.get("bidding_type", "2-Cover (Technical + Financial BOQ)"),
+                covers_count=s.get("covers_count", 2),
+                pre_bid_venue=s.get("pre_bid_venue", "Office of the Superintending Engineer / Chief Engineer (Procurement)"),
+                content_hash=s.get("content_hash") or hashlib.sha256(f"{s['tender_id']}_{s.get('title', '')}".encode()).hexdigest(),
+                classification_method=s.get("classification_method", "RULE_BASED"),
+                status=s.get("status", "ACTIVE"),
+                original_url=s.get("original_url")
+            )
+            db.add(t_obj)
+        upserted_count += 1
+    db.commit()
+
+    total_in_db = db.query(Tender).count()
+    return {
+        "status": "SUCCESS",
+        "message": f"Successfully synchronized {upserted_count} verified seed tenders! Total in database: {total_in_db}",
+        "total_tenders": total_in_db
+    }
+

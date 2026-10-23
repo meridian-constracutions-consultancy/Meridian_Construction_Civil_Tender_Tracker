@@ -92,7 +92,7 @@ class BackgroundScheduler:
 
             # Seed & sync pre-packaged verified tenders from seed_tenders.json (ensuring local and Render parity)
             from app.models.tender import Tender
-            import os, json
+            import os, json, hashlib
             seed_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "db", "seed_tenders.json")
             if os.path.exists(seed_file):
                 try:
@@ -159,10 +159,13 @@ class BackgroundScheduler:
                                     bidding_type=s.get("bidding_type", "2-Cover (Technical + Financial BOQ)"),
                                     covers_count=s.get("covers_count", 2),
                                     pre_bid_venue=s.get("pre_bid_venue", "Office of the Superintending Engineer / Chief Engineer (Procurement)"),
+                                    content_hash=s.get("content_hash") or hashlib.sha256(f"{s['tender_id']}_{s.get('title', '')}".encode()).hexdigest(),
+                                    classification_method=s.get("classification_method", "RULE_BASED"),
                                     status=s.get("status", "ACTIVE"),
                                     original_url=s.get("original_url")
                                 )
                                 db.add(t_obj)
+
                             upserted_count += 1
                         db.commit()
                         logger.info(f"Successfully upserted {upserted_count} verified tenders into database from seed.")

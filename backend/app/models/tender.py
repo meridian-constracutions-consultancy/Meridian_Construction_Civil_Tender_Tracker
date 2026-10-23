@@ -81,8 +81,9 @@ class Tender(Base, TimestampMixin):
     
     # Integrity & Status
     status: Mapped[str] = mapped_column(String(32), default="ACTIVE", nullable=False, index=True) # ACTIVE, AMENDED, CLOSED, CANCELLED
-    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    content_hash: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     contact_name: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+
     contact_address: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     
     # Relationships
