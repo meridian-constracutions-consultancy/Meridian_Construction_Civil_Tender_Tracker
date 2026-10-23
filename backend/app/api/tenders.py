@@ -24,6 +24,8 @@ def list_tenders(
     max_value: Optional[float] = Query(None, ge=0),
     closing_soon: bool = Query(False, description="Filter tenders closing within 7 days"),
     listed_today: bool = Query(False, description="Filter tenders published today"),
+    has_pre_bid: bool = Query(False, description="Filter tenders with upcoming pre-bid meeting"),
+    jv_allowed: bool = Query(False, description="Filter tenders where Joint Venture / Consortium is allowed"),
     sort_by: str = Query("published_date", pattern="^(published_date|bid_submission_deadline|estimated_value|created_at)$"),
     order: str = Query("desc", pattern="^(asc|desc)$"),
     db: Session = Depends(get_db)
@@ -49,6 +51,9 @@ def list_tenders(
     if max_value is not None:
         conditions.append(Tender.estimated_value <= max_value)
 
+    if jv_allowed:
+        conditions.append(Tender.is_joint_venture_allowed == True)
+
     now = datetime.utcnow()
     # IST date threshold for "Listed Today"
     now_ist = now + timedelta(hours=5, minutes=30)
@@ -58,6 +63,9 @@ def list_tenders(
         seven_days = now + timedelta(days=7)
         conditions.append(Tender.bid_submission_deadline >= now)
         conditions.append(Tender.bid_submission_deadline <= seven_days)
+
+    if has_pre_bid:
+        conditions.append(Tender.pre_bid_meeting_date >= now)
 
     if listed_today:
         conditions.append(Tender.published_date >= today_ist_start)

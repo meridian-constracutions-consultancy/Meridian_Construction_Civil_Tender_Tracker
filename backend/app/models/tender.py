@@ -45,7 +45,9 @@ class Tender(Base, TimestampMixin):
     published_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
     document_download_start_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     document_download_end_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
-    pre_bid_meeting_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    clarification_end_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    pre_bid_meeting_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    pre_bid_venue: Mapped[Optional[str]] = mapped_column(String(256), nullable=True)
     bid_submission_start_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     bid_submission_deadline: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
     bid_opening_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -60,11 +62,15 @@ class Tender(Base, TimestampMixin):
     emd_exemption_allowed: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
     contract_duration_days: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     
-    # Category and Classification
+    # Category, Classification & Bidding Eligibility
     tender_category: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)  # Works, Goods, Services
     product_category: Mapped[Optional[str]] = mapped_column(String(128), nullable=True) # Civil Works, etc.
     contract_type: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     tenderer_class: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    bidding_type: Mapped[Optional[str]] = mapped_column(String(64), default="2-Cover (Technical + Financial BOQ)", nullable=True)
+    covers_count: Mapped[Optional[int]] = mapped_column(Integer, default=2, nullable=True)
+    is_joint_venture_allowed: Mapped[Optional[bool]] = mapped_column(Boolean, default=True, nullable=True)
+    is_sub_contracting_allowed: Mapped[Optional[bool]] = mapped_column(Boolean, default=True, nullable=True)
     
     category_id: Mapped[Optional[str]] = mapped_column(String(64), ForeignKey("categories.id", ondelete="SET NULL"), nullable=True, index=True)
     is_civil_construction: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)

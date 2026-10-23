@@ -328,6 +328,20 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                     ) : (
                       <span className="badge badge-civil">Active</span>
                     )}
+                    {t.is_joint_venture_allowed !== false && (
+                      <div style={{ marginTop: '3px' }}>
+                        <span className="badge" style={{ background: 'rgba(56, 189, 248, 0.12)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)', fontSize: '10px' }}>
+                          🤝 JV Allowed
+                        </span>
+                      </div>
+                    )}
+                    {t.pre_bid_meeting_date && (
+                      <div style={{ marginTop: '2px' }}>
+                        <span className="badge" style={{ background: 'rgba(192, 132, 252, 0.15)', color: '#c084fc', border: '1px solid rgba(192, 132, 252, 0.3)', fontSize: '10px' }}>
+                          📅 Pre-Bid Active
+                        </span>
+                      </div>
+                    )}
                   </td>
 
                   {/* Action Buttons */}
@@ -391,6 +405,16 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                     )}
                     {t.status === 'AMENDED' && <span className="badge badge-amended">Amended</span>}
                     {t.closingSoon && <span className="badge badge-closing-soon">Closing Soon</span>}
+                    {t.is_joint_venture_allowed !== false && (
+                      <span className="badge" style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)' }}>
+                        🤝 JV
+                      </span>
+                    )}
+                    {t.pre_bid_meeting_date && (
+                      <span className="badge" style={{ background: 'rgba(192, 132, 252, 0.15)', color: '#c084fc', border: '1px solid rgba(192, 132, 252, 0.3)' }}>
+                        📅 Pre-Bid
+                      </span>
+                    )}
                   </div>
                   <div className="mobile-card-id">{t.tender_id}</div>
                 </div>

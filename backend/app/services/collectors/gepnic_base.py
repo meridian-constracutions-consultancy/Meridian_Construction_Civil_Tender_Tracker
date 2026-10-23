@@ -126,19 +126,42 @@ class GePNICBaseCollector(BaseCollector):
 
             links = []
             seen_hrefs = set()
-            tbl = res_soup.find("table", id="table") or res_soup.find("table", class_=re.compile(r"list", re.I))
-            search_area = tbl if tbl else res_soup
 
-            for a_tag in search_area.find_all("a", href=True):
-                href = a_tag["href"]
-                if "DirectLink" in href and "service=direct" in href:
-                    text = a_tag.get_text(separator=" ", strip=True)
-                    if href not in seen_hrefs and len(text) > 5:
-                        seen_hrefs.add(href)
-                        full_url = urljoin(self.base_url, href)
-                        links.append((full_url, text))
+            def extract_links_from_soup(s_soup):
+                tbl = s_soup.find("table", id="table") or s_soup.find("table", class_=re.compile(r"list", re.I))
+                search_area = tbl if tbl else s_soup
+                extracted = []
+                for a_tag in search_area.find_all("a", href=True):
+                    href = a_tag["href"]
+                    if "DirectLink" in href and "service=direct" in href:
+                        text = a_tag.get_text(separator=" ", strip=True)
+                        if href not in seen_hrefs and len(text) > 5:
+                            seen_hrefs.add(href)
+                            full_url = urljoin(self.base_url, href)
+                            extracted.append((full_url, text))
+                return extracted
 
-            logger.info(f"[{self.source_id}] Found {len(links)} tenders from '{keyword}' keyword search")
+            links.extend(extract_links_from_soup(res_soup))
+
+            # Deep-paging: automatically walk Page 2 and Page 3 if more tenders exist
+            for page_num in range(2, 4):
+                next_tag = res_soup.find("a", string=re.compile(rf"^(Next|{page_num}|>)$", re.I))
+                if next_tag and next_tag.get("href"):
+                    try:
+                        p_url = urljoin(self.base_url, next_tag["href"])
+                        p_resp = self.fetch_url(client, p_url)
+                        res_soup = BeautifulSoup(p_resp.text, "html.parser")
+                        new_links = extract_links_from_soup(res_soup)
+                        links.extend(new_links)
+                        if not new_links:
+                            break
+                    except Exception as pe:
+                        logger.debug(f"[{self.source_id}] Deep-paging error on page {page_num}: {pe}")
+                        break
+                else:
+                    break
+
+            logger.info(f"[{self.source_id}] Found {len(links)} tenders from '{keyword}' keyword search (deep-paged)")
             return links
         except Exception as e:
             logger.error(f"[{self.source_id}] Error in keyword search '{keyword}': {e}")

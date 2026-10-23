@@ -19,6 +19,8 @@ export async function fetchTenders(
   if (filters.source_id) params.set('source_id', filters.source_id);
   if (filters.closing_soon) params.set('closing_soon', 'true');
   if (filters.listed_today) params.set('listed_today', 'true');
+  if (filters.has_pre_bid) params.set('has_pre_bid', 'true');
+  if (filters.jv_allowed) params.set('jv_allowed', 'true');
   if (filters.sort_by) params.set('sort_by', filters.sort_by);
   if (filters.order) params.set('order', filters.order);
 

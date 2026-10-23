@@ -47,18 +47,23 @@ class TenderListItem(BaseModel):
     
     # Dates
     published_date: Optional[datetime] = None
+    document_download_start_date: Optional[datetime] = None
+    document_download_end_date: Optional[datetime] = None
+    pre_bid_meeting_date: Optional[datetime] = None
     bid_submission_start_date: Optional[datetime] = None
     bid_submission_deadline: Optional[datetime] = None
     bid_opening_date: Optional[datetime] = None
     last_verified_at: datetime
     
-    # Classification
+    # Classification & Eligibility
     tender_category: Optional[str] = None
     product_category: Optional[str] = None
     category_id: Optional[str] = None
     is_civil_construction: bool
     classification_score: float
     matched_keywords: Optional[str] = None
+    is_joint_venture_allowed: Optional[bool] = True
+    bidding_type: Optional[str] = "2-Cover (Technical + Financial BOQ)"
     
     # Status
     status: str
@@ -72,6 +77,10 @@ class TenderDetail(TenderListItem):
     contract_type: Optional[str] = None
     tenderer_class: Optional[str] = None
     contract_duration_days: Optional[int] = None
+    pre_bid_venue: Optional[str] = None
+    clarification_end_date: Optional[datetime] = None
+    is_sub_contracting_allowed: Optional[bool] = True
+    covers_count: Optional[int] = 2
     contact_name: Optional[str] = None
     contact_address: Optional[str] = None
     classification_reason: Optional[str] = None

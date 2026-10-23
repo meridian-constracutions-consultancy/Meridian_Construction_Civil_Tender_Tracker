@@ -56,6 +56,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     filters.value_range ||
     filters.closing_soon ||
     filters.listed_today ||
+    filters.has_pre_bid ||
+    filters.jv_allowed ||
     filters.source_id
   );
 
@@ -175,6 +177,20 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             onClick={() => onFilterChange({ closing_soon: !filters.closing_soon })}
           >
             <span>⏰ Closing in 7 Days</span>
+          </button>
+
+          <button
+            className={`toggle-filter-chip ${filters.jv_allowed ? 'active' : ''}`}
+            onClick={() => onFilterChange({ jv_allowed: !filters.jv_allowed })}
+          >
+            <span>🤝 JV Allowed</span>
+          </button>
+
+          <button
+            className={`toggle-filter-chip ${filters.has_pre_bid ? 'active' : ''}`}
+            onClick={() => onFilterChange({ has_pre_bid: !filters.has_pre_bid })}
+          >
+            <span>📅 Pre-Bid Active</span>
           </button>
 
           <button

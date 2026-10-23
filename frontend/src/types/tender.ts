@@ -39,6 +39,9 @@ export interface TenderListItem {
   emd_exemption_allowed?: boolean;
   
   published_date?: string;
+  document_download_start_date?: string;
+  document_download_end_date?: string;
+  pre_bid_meeting_date?: string;
   bid_submission_start_date?: string;
   bid_submission_deadline?: string;
   bid_opening_date?: string;
@@ -50,6 +53,8 @@ export interface TenderListItem {
   is_civil_construction: boolean;
   classification_score: number;
   matched_keywords?: string;
+  is_joint_venture_allowed?: boolean;
+  bidding_type?: string;
   
   status: string; // ACTIVE, AMENDED, CLOSED
   created_at: string;
@@ -62,6 +67,10 @@ export interface TenderDetail extends TenderListItem {
   contract_type?: string;
   tenderer_class?: string;
   contract_duration_days?: number;
+  pre_bid_venue?: string;
+  clarification_end_date?: string;
+  is_sub_contracting_allowed?: boolean;
+  covers_count?: number;
   contact_name?: string;
   contact_address?: string;
   classification_reason?: string;
@@ -106,6 +115,8 @@ export interface FilterState {
   value_range: string;
   closing_soon: boolean;
   listed_today?: boolean;
+  has_pre_bid?: boolean;
+  jv_allowed?: boolean;
   sort_by: string;
   order: 'asc' | 'desc';
 }

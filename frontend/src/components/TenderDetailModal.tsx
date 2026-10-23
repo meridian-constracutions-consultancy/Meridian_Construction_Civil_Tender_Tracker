@@ -141,6 +141,34 @@ export const TenderDetailModal: React.FC<TenderDetailModalProps> = ({ tender, on
             </div>
           </div>
 
+          {/* Critical Bidding Timeline & Pre-Bid Schedule */}
+          <div className="kv-grid">
+            <div className="kv-item">
+              <span className="kv-label">Pre-Bid Meeting Date & Time</span>
+              <span className="kv-value" style={{ color: detail?.pre_bid_meeting_date ? '#c084fc' : '#94a3b8', fontWeight: 600 }}>
+                {detail?.pre_bid_meeting_date ? formatDate(detail.pre_bid_meeting_date) : 'Refer NIT / Online Submission'}
+              </span>
+            </div>
+            <div className="kv-item">
+              <span className="kv-label">Pre-Bid Meeting Venue</span>
+              <span className="kv-value">
+                {detail?.pre_bid_venue || 'Office of the Superintending / Executive Engineer'}
+              </span>
+            </div>
+            <div className="kv-item">
+              <span className="kv-label">Clarification Request End Date</span>
+              <span className="kv-value">
+                {detail?.clarification_end_date ? formatDate(detail.clarification_end_date) : '7 Days Prior to Bid Closing'}
+              </span>
+            </div>
+            <div className="kv-item">
+              <span className="kv-label">Technical Bid Opening Date</span>
+              <span className="kv-value" style={{ color: '#38bdf8' }}>
+                {formatDate(tender.bid_opening_date || tender.bid_submission_deadline)}
+              </span>
+            </div>
+          </div>
+
           {/* Authority and Location */}
           <div className="kv-grid">
             <div className="kv-item">
@@ -163,29 +191,43 @@ export const TenderDetailModal: React.FC<TenderDetailModalProps> = ({ tender, on
             </div>
           </div>
 
-          {/* Tender Requirements & Eligibility */}
+          {/* Consultant Bidding Feasibility, JV & Eligibility Panel */}
           <div style={{ background: '#0e1422', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '14px' }}>
             <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#38bdf8', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <CheckCircle2 size={16} color="#38bdf8" />
-              <span>Tender Requirements & Eligibility</span>
+              <span>Consultant Bidding Feasibility, Joint Venture & Eligibility</span>
             </h3>
             <div className="kv-grid" style={{ marginBottom: 0 }}>
               <div className="kv-item">
-                <span className="kv-label">Tenderer / Consultant Class</span>
-                <span className="kv-value">{detail?.tenderer_class || 'Class A / Open to Registered Consultants'}</span>
+                <span className="kv-label">Joint Venture (JV) / Consortium</span>
+                <span className="kv-value" style={{ color: '#34d399', fontWeight: 600 }}>
+                  {detail?.is_joint_venture_allowed !== false ? 'Allowed (Lead Partner ≥ 50% Equity)' : 'Single Entity Only'}
+                </span>
               </div>
               <div className="kv-item">
-                <span className="kv-label">Contract Type</span>
-                <span className="kv-value">{detail?.contract_type || 'Percentage / Item Rate / Consultancy'}</span>
+                <span className="kv-label">Sub-Consultancy Permitted</span>
+                <span className="kv-value" style={{ color: '#38bdf8' }}>
+                  {detail?.is_sub_contracting_allowed !== false ? 'Permitted (Geotechnical, Surveys & Testing)' : 'Entire Scope In-House'}
+                </span>
+              </div>
+              <div className="kv-item">
+                <span className="kv-label">Bidding Cover System</span>
+                <span className="kv-value">
+                  {detail?.bidding_type || '2-Cover (Cover 1: Tech, Cover 2: Finance BOQ)'}
+                </span>
+              </div>
+              <div className="kv-item">
+                <span className="kv-label">Consultant / Contractor Class</span>
+                <span className="kv-value">{detail?.tenderer_class || 'Class A / Open to Empanelled Consultants'}</span>
               </div>
               <div className="kv-item">
                 <span className="kv-label">Tender Document Fee</span>
-                <span className="kv-value">{tender.tender_fee ? `₹${tender.tender_fee.toLocaleString('en-IN')}` : 'Refer NIT / Free'}</span>
+                <span className="kv-value">{tender.tender_fee ? `₹${tender.tender_fee.toLocaleString('en-IN')}` : 'Refer NIT / Free Download'}</span>
               </div>
               <div className="kv-item">
-                <span className="kv-label">EMD Exemption</span>
+                <span className="kv-label">EMD Exemption (MSME/NSIC)</span>
                 <span className="kv-value" style={{ color: tender.emd_exemption_allowed ? '#34d399' : '#e2e8f0' }}>
-                  {tender.emd_exemption_allowed ? 'Yes (MSME / NSIC Eligible)' : 'Refer NIT / As Applicable'}
+                  {tender.emd_exemption_allowed ? 'Allowed (MSME / NSIC Registered)' : 'Refer NIT / BG / FDR'}
                 </span>
               </div>
             </div>
@@ -372,8 +414,24 @@ export const TenderDetailModal: React.FC<TenderDetailModalProps> = ({ tender, on
                 </a>
               </div>
             </div>
+            <div style={{
+              background: 'rgba(15, 23, 42, 0.75)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '6px',
+              padding: '12px',
+              marginTop: '4px'
+            }}>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: '#38bdf8', marginBottom: '6px' }}>
+                📌 3-Step Verification on {tender.portal_name}:
+              </div>
+              <ol style={{ fontSize: '11px', color: '#cbd5e1', paddingLeft: '18px', margin: 0, lineHeight: 1.6 }}>
+                <li>Click <strong>Open Official Portal</strong> above (Tender ID is already copied to your clipboard).</li>
+                <li>On the portal homepage left sidebar, click <strong>"Search"</strong> or <strong>"Tenders by Location/ID"</strong>.</li>
+                <li>Paste (<kbd style={{ background: '#1e293b', padding: '1px 4px', borderRadius: '3px' }}>Ctrl + V</kbd>) the Tender ID <code style={{ color: '#a5b4fc' }}>{tender.tender_id}</code> and hit <strong>Search</strong> to download original technical NIT & Excel BOQ sheets!</li>
+              </ol>
+            </div>
             <div style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1.5 }}>
-              <strong style={{ color: '#fbbf24' }}>Notice:</strong> NIC GePNIC portals use server-side session tokens that cannot be bookmarked. Clicking <strong>Open Official Portal</strong> automatically copies the Tender ID to your clipboard so you can search and download official tender documents and BOQ sheets immediately.
+              <strong style={{ color: '#fbbf24' }}>Notice:</strong> NIC GePNIC portals use server-side session tokens that expire after inactivity. Automatic ID copying ensures zero-failure manual lookup on official government servers.
             </div>
           </div>
         </div>
