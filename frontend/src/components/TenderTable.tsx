@@ -12,6 +12,8 @@ interface TenderTableProps {
   isCivilOnly?: boolean;
 }
 
+const PAGE_SIZE = 10;
+
 export const TenderTable: React.FC<TenderTableProps> = ({
   tenders,
   isLoading,
@@ -24,6 +26,12 @@ export const TenderTable: React.FC<TenderTableProps> = ({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   // View mode: 'auto' (cards on mobile, table on desktop), or explicit 'table' / 'cards'
   const [viewMode, setViewMode] = useState<'auto' | 'table' | 'cards'>('auto');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
+  // Automatically reset to page 1 when data or sort changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [tenders, sortBy, order]);
 
   const handleCopyAndOpenPortal = useCallback((e: React.MouseEvent, t: TenderListItem) => {
     if (navigator.clipboard) {
@@ -58,17 +66,27 @@ export const TenderTable: React.FC<TenderTableProps> = ({
     return <span className="amount-val">₹{amount.toLocaleString('en-IN')}</span>;
   }, []);
 
-  const formatDate = useCallback((dateStr?: string) => {
-    if (!dateStr) return <span className="text-subtle-sm">Refer NIT</span>;
+  // Format date and time (e.g. 22-10-2026, 6.30 pm)
+  const formatDateTime = useCallback((dateStr?: string) => {
+    if (!dateStr) return { date: 'Refer NIT', time: '' };
     try {
       const d = new Date(dateStr);
-      return d.toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      });
+      if (isNaN(d.getTime())) return { date: dateStr, time: '' };
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      const date = `${day}-${month}-${year}`;
+
+      let hours = d.getHours();
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'pm' : 'am';
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      const time = `${hours}.${minutes} ${ampm}`;
+
+      return { date, time, full: `${date} ${time}` };
     } catch {
-      return dateStr;
+      return { date: dateStr, time: '' };
     }
   }, []);
 
@@ -117,10 +135,22 @@ export const TenderTable: React.FC<TenderTableProps> = ({
       categoryLabel: getCategoryLabel(t.category_id),
       formattedValue: formatIndianCurrency(t.estimated_value),
       formattedEmd: formatIndianCurrency(t.emd_amount),
-      formattedPublished: formatDate(t.published_date),
-      formattedClosing: formatDate(t.bid_submission_deadline),
+      formattedPublished: formatDateTime(t.published_date),
+      formattedClosing: formatDateTime(t.bid_submission_deadline),
     }));
-  }, [tenders, isClosingSoon, isListedToday, getCategoryLabel, formatIndianCurrency, formatDate]);
+  }, [tenders, isClosingSoon, isListedToday, getCategoryLabel, formatIndianCurrency, formatDateTime]);
+
+  // Pagination calculation
+  const totalPages = Math.max(1, Math.ceil(processedTenders.length / PAGE_SIZE));
+  const paginatedTenders = useMemo(() => {
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    return processedTenders.slice(startIndex, startIndex + PAGE_SIZE);
+  }, [processedTenders, currentPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 300, behavior: 'smooth' });
+  };
 
   return (
     <div className={`table-container view-mode-${viewMode}`}>
@@ -206,7 +236,7 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                 </td>
               </tr>
             ) : (
-              processedTenders.map((t) => (
+              paginatedTenders.map((t) => (
                 <tr key={t.id} className={t.isNewArrival ? 'new-arrival' : ''}>
                   {/* Tender ID */}
                   <td style={{ whiteSpace: 'nowrap' }}>
@@ -258,8 +288,13 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                   </td>
 
                   {/* Published Date */}
-                  <td style={{ whiteSpace: 'nowrap', color: '#94a3b8', fontSize: '12px' }}>
-                    <div>{t.formattedPublished}</div>
+                  <td style={{ whiteSpace: 'nowrap', fontSize: '12px' }}>
+                    <div className="datetime-wrapper">
+                      <span className="datetime-date">{t.formattedPublished.date}</span>
+                      {t.formattedPublished.time && (
+                        <span className="datetime-time">{t.formattedPublished.time}</span>
+                      )}
+                    </div>
                     {t.isToday && (
                       <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.4)', marginTop: '3px', fontSize: '10px', padding: '1px 5px', display: 'inline-block' }}>
                         🔥 Listed Today
@@ -269,8 +304,15 @@ export const TenderTable: React.FC<TenderTableProps> = ({
 
                   {/* Closing Date */}
                   <td style={{ whiteSpace: 'nowrap' }}>
-                    <div style={{ color: t.closingSoon ? '#fbbf24' : '#e2e8f0', fontSize: '12px', fontWeight: t.closingSoon ? 600 : 400 }}>
-                      {t.formattedClosing}
+                    <div className="datetime-wrapper">
+                      <span className="datetime-date" style={{ color: t.closingSoon ? '#fbbf24' : '#e2e8f0', fontWeight: t.closingSoon ? 600 : 400 }}>
+                        {t.formattedClosing.date}
+                      </span>
+                      {t.formattedClosing.time && (
+                        <span className="datetime-time" style={{ color: t.closingSoon ? '#fde68a' : '#94a3b8' }}>
+                          {t.formattedClosing.time}
+                        </span>
+                      )}
                     </div>
                     {t.closingSoon && (
                       <span className="badge badge-closing-soon" style={{ marginTop: '2px' }}>
@@ -331,7 +373,7 @@ export const TenderTable: React.FC<TenderTableProps> = ({
           </div>
         ) : (
           <div className="tender-cards-grid">
-            {processedTenders.map((t) => (
+            {paginatedTenders.map((t) => (
               <div key={`card-${t.id}`} className={`tender-mobile-card ${t.isNewArrival ? 'new-arrival' : ''}`}>
                 {/* Card Top Badges & Meta */}
                 <div className="mobile-card-header">
@@ -374,7 +416,7 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                   <div className="metric-box">
                     <span className="metric-label">Closing Date</span>
                     <div className={`metric-value ${t.closingSoon ? 'text-closing-soon' : ''}`}>
-                      {t.formattedClosing}
+                      {t.formattedClosing.full}
                     </div>
                   </div>
                   <div className="metric-box">
@@ -411,6 +453,45 @@ export const TenderTable: React.FC<TenderTableProps> = ({
           </div>
         )}
       </div>
+
+      {/* 3. TABLE PAGINATION BAR (10 rows per page, 1 2 3 4 5 buttons, max 100 tenders) */}
+      {processedTenders.length > 0 && (
+        <div className="table-pagination-bar">
+          <div className="pagination-info">
+            Showing <span className="pagination-highlight">{(currentPage - 1) * PAGE_SIZE + 1}</span> to <span className="pagination-highlight">{Math.min(currentPage * PAGE_SIZE, processedTenders.length)}</span> of <span className="pagination-highlight">{processedTenders.length}</span> latest design tenders (Max 100)
+          </div>
+          <div className="pagination-controls">
+            <button
+              className="pagination-btn"
+              onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              aria-label="Previous page"
+            >
+              ← Prev
+            </button>
+            <div className="pagination-pages">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                <button
+                  key={pageNum}
+                  className={`pagination-page-btn ${currentPage === pageNum ? 'active' : ''}`}
+                  onClick={() => handlePageChange(pageNum)}
+                  aria-label={`Page ${pageNum}`}
+                >
+                  {pageNum}
+                </button>
+              ))}
+            </div>
+            <button
+              className="pagination-btn"
+              onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages || totalPages === 0}
+              aria-label="Next page"
+            >
+              Next →
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

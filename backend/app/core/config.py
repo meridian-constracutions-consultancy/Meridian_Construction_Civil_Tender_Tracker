@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = f"sqlite:///{_DEFAULT_DB_FILE}"
     
     # Monitoring and Collection
-    POLL_INTERVAL_MINUTES: int = 10
+    POLL_INTERVAL_MINUTES: int = 15
     MAX_CONCURRENT_COLLECTIONS: int = 2
     REQUEST_TIMEOUT_SECONDS: int = 30
     DEFAULT_USER_AGENT: str = (

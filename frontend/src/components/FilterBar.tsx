@@ -54,7 +54,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     filters.category_id ||
     filters.state ||
     filters.value_range ||
-    !filters.is_civil_only ||
     filters.closing_soon ||
     filters.listed_today ||
     filters.source_id
@@ -155,11 +154,13 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       <div className="filter-row filter-row-chips">
         <div className="chips-scroll-container">
           <button
-            className={`toggle-filter-chip ${filters.is_civil_only ? 'active' : ''}`}
-            onClick={() => onFilterChange({ is_civil_only: !filters.is_civil_only })}
+            type="button"
+            className="toggle-filter-chip active"
+            style={{ cursor: 'default' }}
+            title="Registry is strictly isolated to Civil Design, Architecture & Consultancy Tenders"
           >
-            <CheckCircle2 size={13} />
-            <span>Design & Consultancy Only</span>
+            <CheckCircle2 size={13} color="#34d399" />
+            <span>Design & Consultancy (Verified)</span>
           </button>
 
           <button

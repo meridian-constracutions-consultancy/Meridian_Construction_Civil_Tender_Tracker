@@ -52,7 +52,7 @@ export const App: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const response = await fetchTenders(filters, 50, 0, controller.signal);
+      const response = await fetchTenders(filters, 100, 0, controller.signal);
       setTenders(response.items);
       setStats({
         totalCount: response.total_count,
@@ -78,7 +78,7 @@ export const App: React.FC = () => {
     try {
       // 1. Immediately fetch latest database records with cache-busting
       const [tendersRes, sourcesRes] = await Promise.all([
-        fetchTenders(filters, 50, 0),
+        fetchTenders(filters, 100, 0),
         fetchSources(),
       ]);
 
@@ -97,7 +97,7 @@ export const App: React.FC = () => {
       // 2. Trigger background portal synchronization & reload once crawl completes
       syncAllSources()
         .then(async () => {
-          const fresh = await fetchTenders(filters, 50, 0);
+          const fresh = await fetchTenders(filters, 100, 0);
           setTenders(fresh.items);
           setStats({
             totalCount: fresh.total_count,
@@ -141,6 +141,15 @@ export const App: React.FC = () => {
     loadSources();
   }, [loadSources]);
 
+  // Automatically update every 15 minutes in background without requiring manual reload
+  useEffect(() => {
+    const autoRefreshTimer = setInterval(() => {
+      loadTenders();
+      loadSources();
+    }, 15 * 60 * 1000);
+    return () => clearInterval(autoRefreshTimer);
+  }, [loadTenders, loadSources]);
+
   // Set up Server-Sent Events (SSE) for live streaming updates
   useEffect(() => {
     const sse = new SSEClient({
@@ -160,8 +169,8 @@ export const App: React.FC = () => {
             return prev;
           }
           const itemWithHighlight = { ...newTender, isNewArrival: true };
-          // Keep maximum 50 records in the live dashboard
-          return [itemWithHighlight, ...prev.slice(0, 49)];
+          // Keep maximum 100 records in the live dashboard
+          return [itemWithHighlight, ...prev.slice(0, 99)];
         });
 
         // Update stats

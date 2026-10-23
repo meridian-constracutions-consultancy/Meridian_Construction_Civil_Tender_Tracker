@@ -13,29 +13,26 @@ router = APIRouter(prefix="/tenders", tags=["tenders"])
 
 @router.get("", response_model=TenderListResponse)
 def list_tenders(
-    limit: int = Query(50, ge=1, le=100, description="Display limit (default 50)"),
+    limit: int = Query(10, ge=1, le=100, description="Display limit (default 10 per page)"),
     offset: int = Query(0, ge=0),
     search: Optional[str] = Query(None, description="Keyword search in title, reference number, or organization"),
-    is_civil_only: bool = Query(True, description="Filter for civil construction tenders only"),
+    is_civil_only: bool = Query(True, description="Strictly keyword-matched design & consultancy tenders only"),
     category_id: Optional[str] = Query(None, description="Filter by matched category ID"),
     state: Optional[str] = Query(None),
     source_id: Optional[str] = Query(None),
     min_value: Optional[float] = Query(None, ge=0),
     max_value: Optional[float] = Query(None, ge=0),
     closing_soon: bool = Query(False, description="Filter tenders closing within 7 days"),
-    listed_today: bool = Query(False, description="Filter tenders published today or in the last 24 hours"),
+    listed_today: bool = Query(False, description="Filter tenders published today"),
     sort_by: str = Query("published_date", pattern="^(published_date|bid_submission_deadline|estimated_value|created_at)$"),
     order: str = Query("desc", pattern="^(asc|desc)$"),
     db: Session = Depends(get_db)
 ):
     """
-    Returns the latest tenders matching filters (default: latest 50 civil construction tenders).
+    Returns only keyword-matched Design & Consultancy tenders in strict chronological order.
     """
-    # Base filter criteria
-    conditions = []
-
-    if is_civil_only:
-        conditions.append(Tender.is_civil_construction == True)
+    # Base filter criteria: ALWAYS strictly enforce keyword-matched tenders only
+    conditions = [Tender.is_civil_construction == True]
 
     if category_id:
         conditions.append(Tender.category_id == category_id)
@@ -52,15 +49,18 @@ def list_tenders(
     if max_value is not None:
         conditions.append(Tender.estimated_value <= max_value)
 
+    now = datetime.utcnow()
+    # IST date threshold for "Listed Today"
+    now_ist = now + timedelta(hours=5, minutes=30)
+    today_ist_start = datetime.combine(now_ist.date(), datetime.min.time())
+
     if closing_soon:
-        now = datetime.utcnow()
         seven_days = now + timedelta(days=7)
         conditions.append(Tender.bid_submission_deadline >= now)
         conditions.append(Tender.bid_submission_deadline <= seven_days)
 
     if listed_today:
-        today_threshold = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(hours=6)
-        conditions.append(Tender.published_date >= today_threshold)
+        conditions.append(Tender.published_date >= today_ist_start)
 
     if search:
         term = f"%{search.strip()}%"
@@ -75,44 +75,48 @@ def list_tenders(
             )
         )
 
-    # Compute high-level dashboard metrics
-    now = datetime.utcnow()
-    total_count = db.scalar(select(func.count(Tender.id))) or 0
-    civil_count = db.scalar(select(func.count(Tender.id)).where(Tender.is_civil_construction == True)) or 0
-    closing_soon_query = select(func.count(Tender.id)).where(
-        Tender.bid_submission_deadline >= now,
-        Tender.bid_submission_deadline <= now + timedelta(days=7)
-    )
-    if is_civil_only:
-        closing_soon_query = closing_soon_query.where(Tender.is_civil_construction == True)
-    closing_soon_count = db.scalar(closing_soon_query) or 0
+    # Compute high-level dashboard metrics (all strictly keyword-matched design tenders)
+    total_count = db.scalar(select(func.count(Tender.id)).where(Tender.is_civil_construction == True)) or 0
+    civil_count = total_count
 
-    today_threshold = now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(hours=6)
-    today_query = select(func.count(Tender.id)).where(Tender.published_date >= today_threshold)
-    if is_civil_only:
-        today_query = today_query.where(Tender.is_civil_construction == True)
-    today_count = db.scalar(today_query) or 0
+    closing_soon_count = db.scalar(
+        select(func.count(Tender.id)).where(
+            Tender.is_civil_construction == True,
+            Tender.bid_submission_deadline >= now,
+            Tender.bid_submission_deadline <= now + timedelta(days=7)
+        )
+    ) or 0
+
+    today_count = db.scalar(
+        select(func.count(Tender.id)).where(
+            Tender.is_civil_construction == True,
+            Tender.published_date >= today_ist_start
+        )
+    ) or 0
 
     # Query matching count
     query_count = select(func.count(Tender.id))
     if conditions:
         query_count = query_count.where(*conditions)
-    matching_count = db.scalar(query_count) or 0
+    raw_matching_count = db.scalar(query_count) or 0
+    # User requested maximum 100 tenders total
+    matching_count = min(100, raw_matching_count)
 
     # Main data query
     query = select(Tender)
     if conditions:
         query = query.where(*conditions)
 
-    # Sorting
+    # Strict chronological sorting (e.g. 6:30 PM before 6:00 PM)
     sort_column = getattr(Tender, sort_by)
     if order == "desc":
-        query = query.order_by(sort_column.desc().nullslast())
+        query = query.order_by(sort_column.desc().nullslast(), Tender.id.desc())
     else:
-        query = query.order_by(sort_column.asc().nullsfirst())
+        query = query.order_by(sort_column.asc().nullsfirst(), Tender.id.asc())
 
-    # Limit and offset pagination
-    query = query.offset(offset).limit(limit)
+    # Limit and offset pagination (capped at 100 total)
+    effective_limit = min(limit, max(0, 100 - offset))
+    query = query.offset(offset).limit(effective_limit)
     items = db.scalars(query).all()
 
     return TenderListResponse(

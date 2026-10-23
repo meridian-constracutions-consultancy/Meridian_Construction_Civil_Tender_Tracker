@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, ExternalLink, FileText, Calendar, Building, DollarSign, ShieldAlert, Award, FileSpreadsheet, Copy, Check } from 'lucide-react';
+import { X, ExternalLink, FileText, Calendar, Building, DollarSign, ShieldAlert, Award, FileSpreadsheet, Copy, Check, CheckCircle2 } from 'lucide-react';
 import { TenderListItem, TenderDetail } from '../types/tender';
 import { fetchTenderDetail } from '../api/client';
 
@@ -160,6 +160,34 @@ export const TenderDetailModal: React.FC<TenderDetailModalProps> = ({ tender, on
               <span className="kv-value">
                 {detail?.contract_duration_days ? `${detail.contract_duration_days} Days` : 'Refer Notice'}
               </span>
+            </div>
+          </div>
+
+          {/* Tender Requirements & Eligibility */}
+          <div style={{ background: '#0e1422', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '14px' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#38bdf8', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <CheckCircle2 size={16} color="#38bdf8" />
+              <span>Tender Requirements & Eligibility</span>
+            </h3>
+            <div className="kv-grid" style={{ marginBottom: 0 }}>
+              <div className="kv-item">
+                <span className="kv-label">Tenderer / Consultant Class</span>
+                <span className="kv-value">{detail?.tenderer_class || 'Class A / Open to Registered Consultants'}</span>
+              </div>
+              <div className="kv-item">
+                <span className="kv-label">Contract Type</span>
+                <span className="kv-value">{detail?.contract_type || 'Percentage / Item Rate / Consultancy'}</span>
+              </div>
+              <div className="kv-item">
+                <span className="kv-label">Tender Document Fee</span>
+                <span className="kv-value">{tender.tender_fee ? `₹${tender.tender_fee.toLocaleString('en-IN')}` : 'Refer NIT / Free'}</span>
+              </div>
+              <div className="kv-item">
+                <span className="kv-label">EMD Exemption</span>
+                <span className="kv-value" style={{ color: tender.emd_exemption_allowed ? '#34d399' : '#e2e8f0' }}>
+                  {tender.emd_exemption_allowed ? 'Yes (MSME / NSIC Eligible)' : 'Refer NIT / As Applicable'}
+                </span>
+              </div>
             </div>
           </div>
 

@@ -33,6 +33,10 @@ class IngestionService:
         last_id = None
 
         for item in raw_tenders:
+            # Strictly filter: Only ingest tenders that matched design & consultancy keywords
+            if not item.get("is_civil_construction"):
+                continue
+
             tender_id = item["tender_id"]
             last_id = tender_id
             docs_data = item.pop("documents", [])
