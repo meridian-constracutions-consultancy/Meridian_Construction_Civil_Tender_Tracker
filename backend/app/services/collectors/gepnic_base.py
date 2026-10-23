@@ -180,12 +180,11 @@ class GePNICBaseCollector(BaseCollector):
         with httpx.Client(verify=True, follow_redirects=True) as client:
             logger.info(f"[{self.source_id}] Starting collection run on {self.base_url}")
 
-            # Focused strictly on Design, Consultancy, Structural, Architectural, DPR, PMC, and Utilities Design
-            target_keywords = [
-                "design", "consultancy", "consultant", "dpr", "pmc",
-                "architectural", "structural", "proof checking", "vetting",
-                "feasibility", "survey", "inspection", "audit", "master plan"
-            ]
+            # Dynamically use configured search keywords from classification engine (customizable via UI settings)
+            target_keywords = classification_engine.get_search_keywords()
+            if not target_keywords:
+                target_keywords = ["design", "consultancy", "consultant", "dpr", "pmc", "structural"]
+
             
             candidate_links: List[Tuple[str, str]] = []
             for kw in target_keywords:

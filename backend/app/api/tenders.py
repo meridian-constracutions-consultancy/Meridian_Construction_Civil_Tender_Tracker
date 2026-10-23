@@ -24,6 +24,7 @@ def list_tenders(
     max_value: Optional[float] = Query(None, ge=0),
     closing_soon: bool = Query(False, description="Filter tenders closing within 7 days"),
     listed_today: bool = Query(False, description="Filter tenders published today"),
+    under_15_days: bool = Query(False, description="Filter tenders published within last 15 days"),
     has_pre_bid: bool = Query(False, description="Filter tenders with upcoming pre-bid meeting"),
     jv_allowed: bool = Query(False, description="Filter tenders where Joint Venture / Consortium is allowed"),
     sort_by: str = Query("published_date", pattern="^(published_date|bid_submission_deadline|estimated_value|created_at)$"),
@@ -70,6 +71,9 @@ def list_tenders(
     if listed_today:
         conditions.append(Tender.published_date >= today_ist_start)
 
+    if under_15_days:
+        conditions.append(Tender.published_date >= (now - timedelta(days=15)))
+
     if search:
         term = f"%{search.strip()}%"
         conditions.append(
@@ -99,6 +103,13 @@ def list_tenders(
         select(func.count(Tender.id)).where(
             Tender.is_civil_construction == True,
             Tender.published_date >= today_ist_start
+        )
+    ) or 0
+
+    under_15_days_count = db.scalar(
+        select(func.count(Tender.id)).where(
+            Tender.is_civil_construction == True,
+            Tender.published_date >= (now - timedelta(days=15))
         )
     ) or 0
 
@@ -133,10 +144,12 @@ def list_tenders(
         civil_count=civil_count,
         closing_soon_count=closing_soon_count,
         today_count=today_count,
+        under_15_days_count=under_15_days_count,
         limit=limit,
         offset=offset,
         items=items
     )
+
 
 @router.get("/{id_or_tender_id}", response_model=TenderDetail)
 def get_tender_detail(id_or_tender_id: str, db: Session = Depends(get_db)):

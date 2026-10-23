@@ -26,6 +26,7 @@ from app.api.sources import router as sources_router
 from app.api.events import router as events_router
 from app.api.exports import router as exports_router
 from app.api.auth import router as auth_router
+from app.api.settings import router as settings_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -58,6 +59,19 @@ async def lifespan(app: FastAPI):
             db.add(admin)
             db.commit()
             logger.info("Default administrator account initialized with defense-grade security credentials.")
+
+        # Sync keyword configuration from database if custom keywords exist
+        from app.models.setting import SystemSetting
+        from app.services.classification.engine import classification_engine
+        kw_setting = db.execute(
+            select(SystemSetting).where(SystemSetting.key == "keywords_config")
+        ).scalar_one_or_none()
+        if kw_setting:
+            try:
+                classification_engine.update_rules(json.loads(kw_setting.value))
+                logger.info("Custom keywords configuration successfully reloaded from database.")
+            except Exception as e:
+                logger.warning(f"Error loading custom keywords config on startup: {e}")
 
     if settings.ENVIRONMENT != "testing":
         logger.info("Starting background collection scheduler...")
@@ -182,6 +196,8 @@ app.include_router(tenders_router, prefix="/api")
 app.include_router(sources_router, prefix="/api")
 app.include_router(events_router, prefix="/api")
 app.include_router(exports_router, prefix="/api")
+app.include_router(settings_router, prefix="/api")
+
 
 @app.get("/api/health")
 def health_check():

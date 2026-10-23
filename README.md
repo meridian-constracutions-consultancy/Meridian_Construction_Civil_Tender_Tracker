@@ -99,50 +99,6 @@ CivilTender India transforms raw, fragmented portal listings into actionable pro
 
 ---
 
-## 🛠️ Technology Stack
-
-CivilTender India is constructed on a modern, decoupled client-server architecture utilizing zero commercial dependencies:
-
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                        FRONTEND CLIENT (SPA)                           │
-│  React 18  •  TypeScript  •  Vite  •  Lucide Icons  •  Vanilla CSS     │
-│  (Real-Time SSE Listeners, Anti-Cache Client, Glassmorphism UI)        │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │ HTTP / REST / SSE Stream
-                                    ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                        BACKEND API & SECURITY                          │
-│  FastAPI (ASGI)  •  Python 3.13  •  HTTPX Async Connection Pool        │
-│  Built-in WAF  •  Rate Limiting  •  OWASP Headers  •  SSRF Protection  │
-└───────────────────┬────────────────────────────────┬───────────────────┘
-                    │                                │
-                    ▼                                ▼
-┌──────────────────────────────────────┐  ┌──────────────────────────────┐
-│       INGESTION & INTELLIGENCE       │  │      STORAGE & DATABASE      │
-│  • BeautifulSoup4 HTML Parsing       │  │  • SQLite 3 WAL Mode         │
-│  • 6-Domain Classification Engine    │  │  • SQLAlchemy 2.0 ORM        │
-│  • Negative Keyword Filter           │  │  • Alembic Schema Migration  │
-│  • SHA-256 Corrigenda Detection      │  │  • Thread-Safe Connection    │
-│  • PyMuPDF / pdfplumber Extraction   │  │  • OpenPyXL Styled Reports   │
-└──────────────────────────────────────┘  └──────────────────────────────┘
-```
-
-### Technology Breakdown
-
-| Layer | Technologies | Role & Purpose |
-| :--- | :--- | :--- |
-| **Backend Framework** | **Python 3.13**, **FastAPI**, **Uvicorn (ASGI)** | High-concurrency asynchronous API runtime delivering sub-millisecond route execution and native background tasks. |
-| **Database Engine** | **SQLite 3** (with **WAL - Write-Ahead Logging** mode), **SQLAlchemy 2.0** | Serverless, high-reliability transactional persistence supporting concurrent reads and writes with zero external database server cost. |
-| **Network & Scraping Engine** | **HTTPX**, **BeautifulSoup4**, **lxml** | Async HTTP client pooling, automated session cookie management, and deterministic HTML DOM table extraction tailored for GePNIC portal layouts. |
-| **Live Streaming** | **Server-Sent Events (SSE)** | Unidirectional, lightweight event streaming providing real-time tender arrival highlights and collector telemetry without the overhead of heavy WebSockets. |
-| **Frontend Framework** | **React 18**, **TypeScript**, **Vite** | Type-safe, component-driven user interface compiled to ultra-lean static assets with instant hot-module replacement and rapid rendering. |
-| **User Interface & Aesthetics** | **Bespoke Vanilla CSS**, **Lucide React** | Dark-mode interface featuring glassmorphic elevation, responsive typography, micro-animations, and zero heavyweight CSS runtime dependencies. |
-| **Reporting & Export** | **OpenPyXL** | Generates styled Excel workbooks with frozen headers, formatted currency columns, and automated formula injection mitigation. |
-| **Security Architecture** | **In-House WAF**, **Token Bucket Rate Limiting**, **SSRF Domain Allowlisting** | Defense-grade protection defending against SQL Injection, Cross-Site Scripting (XSS), Path Traversal, Bot Probing, and SSRF attacks. |
-
----
-
 ## 🔮 Future Benefits & Strategic Roadmap
 
 CivilTender India is architected for long-term scalability. Planned extensions and future benefits include:

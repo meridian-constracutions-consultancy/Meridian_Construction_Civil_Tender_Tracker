@@ -1,4 +1,4 @@
-import { TenderListResponse, TenderDetail, SourceRead, FilterState } from '../types/tender';
+import { TenderListResponse, TenderDetail, SourceRead, FilterState, KeywordsConfig, KeywordsUpdateRequest } from '../types/tender';
 
 const BASE_URL = '/api';
 
@@ -19,10 +19,12 @@ export async function fetchTenders(
   if (filters.source_id) params.set('source_id', filters.source_id);
   if (filters.closing_soon) params.set('closing_soon', 'true');
   if (filters.listed_today) params.set('listed_today', 'true');
+  if (filters.under_15_days) params.set('under_15_days', 'true');
   if (filters.has_pre_bid) params.set('has_pre_bid', 'true');
   if (filters.jv_allowed) params.set('jv_allowed', 'true');
   if (filters.sort_by) params.set('sort_by', filters.sort_by);
   if (filters.order) params.set('order', filters.order);
+
 
   // Handle value range presets
   if (filters.value_range) {
@@ -112,5 +114,32 @@ export function getExportUrl(type: 'csv' | 'excel', filters: Partial<FilterState
   if (filters.source_id) params.set('source_id', filters.source_id);
   if (filters.closing_soon) params.set('closing_soon', 'true');
   if (filters.listed_today) params.set('listed_today', 'true');
+  if (filters.under_15_days) params.set('under_15_days', 'true');
   return `${BASE_URL}/export/${type}?${params.toString()}`;
 }
+
+export async function fetchKeywords(): Promise<KeywordsConfig> {
+  const response = await fetch(`${BASE_URL}/settings/keywords?_t=${Date.now()}`, {
+    cache: 'no-store',
+    headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to fetch keywords: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+export async function saveKeywords(payload: KeywordsUpdateRequest): Promise<any> {
+  const response = await fetch(`${BASE_URL}/settings/keywords`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to save keywords: ${response.statusText}`);
+  }
+  return response.json();
+}
+

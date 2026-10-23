@@ -1,5 +1,5 @@
 import React from 'react';
-import { RefreshCw, HardHat } from 'lucide-react';
+import { RefreshCw, HardHat, Sliders } from 'lucide-react';
 import { SSEConnectionStatus } from '../api/sse';
 
 interface HeaderProps {
@@ -7,13 +7,15 @@ interface HeaderProps {
   lastUpdated: Date | null;
   onRefresh: () => void;
   isRefreshing: boolean;
+  onOpenSettings?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   sseStatus,
   lastUpdated,
   onRefresh,
-  isRefreshing
+  isRefreshing,
+  onOpenSettings
 }) => {
   return (
     <header className="app-header">
@@ -61,7 +63,30 @@ export const Header: React.FC<HeaderProps> = ({
           <RefreshCw size={14} className={isRefreshing ? 'spin' : ''} />
           <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
         </button>
+
+        {/* Keywords Settings Button */}
+        {onOpenSettings && (
+          <button
+            className="btn btn-outline btn-settings"
+            onClick={onOpenSettings}
+            title="Edit and add discovery keywords for Rajasthan & Central portals"
+            aria-label="Manage Keywords Settings"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'rgba(99, 102, 241, 0.12)',
+              borderColor: 'rgba(99, 102, 241, 0.4)',
+              color: '#c7d2fe',
+              fontWeight: 500
+            }}
+          >
+            <Sliders size={14} color="#818cf8" />
+            <span>Keywords</span>
+          </button>
+        )}
       </div>
     </header>
   );
 };
+

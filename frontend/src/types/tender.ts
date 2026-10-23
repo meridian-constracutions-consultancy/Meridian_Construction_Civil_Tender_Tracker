@@ -85,6 +85,7 @@ export interface TenderListResponse {
   civil_count: number;
   closing_soon_count: number;
   today_count?: number;
+  under_15_days_count?: number;
   limit: number;
   offset: number;
   items: TenderListItem[];
@@ -115,8 +116,31 @@ export interface FilterState {
   value_range: string;
   closing_soon: boolean;
   listed_today?: boolean;
+  under_15_days?: boolean;
   has_pre_bid?: boolean;
   jv_allowed?: boolean;
   sort_by: string;
   order: 'asc' | 'desc';
 }
+
+export interface KeywordCategoryConfig {
+  id: string;
+  name: string;
+  positive_keywords: string[];
+  phrases?: string[];
+}
+
+export interface KeywordsConfig {
+  search_keywords: string[];
+  categories: KeywordCategoryConfig[];
+  disqualifying_negative_keywords?: string[];
+}
+
+export interface KeywordsUpdateRequest {
+  search_keywords?: string[];
+  categories?: KeywordCategoryConfig[];
+  new_keyword?: string;
+  category_id?: string;
+  disqualifying_negative_keywords?: string[];
+}
+

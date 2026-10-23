@@ -44,9 +44,38 @@ class ClassificationEngine:
         with open(self.rules_path, "r", encoding="utf-8") as f:
             self.rules = json.load(f)
             
+        default_search = [
+            "design", "consultancy", "consultant", "dpr", "pmc",
+            "architectural", "structural", "proof checking", "vetting",
+            "feasibility", "survey", "inspection", "audit", "master plan"
+        ]
+        loaded_search = self.rules.get("search_keywords", [])
+        if not loaded_search:
+            self.rules["search_keywords"] = default_search
+            loaded_search = default_search
+
+        self.search_keywords = [k.strip().lower() for k in loaded_search if k.strip()]
         self.categories = self.rules.get("categories", [])
         self.disqualifying_negatives = [k.lower() for k in self.rules.get("disqualifying_negative_keywords", [])]
         self.contextual_negatives = [k.lower() for k in self.rules.get("contextual_negative_keywords", [])]
+
+    def reload_rules(self):
+        """Reloads the classification rules and keywords from rules.json."""
+        self._load_rules()
+
+    def get_search_keywords(self) -> List[str]:
+        """Returns the active search keywords for portal scrapers."""
+        return list(self.search_keywords)
+
+    def get_keywords_config(self) -> Dict[str, Any]:
+        """Returns the full keywords and categories configuration."""
+        return dict(self.rules)
+
+    def update_rules(self, updated_rules: Dict[str, Any]):
+        """Persists updated rules to rules.json and reloads in-memory rules."""
+        with open(self.rules_path, "w", encoding="utf-8") as f:
+            json.dump(updated_rules, f, indent=2)
+        self._load_rules()
 
     def classify(
         self,

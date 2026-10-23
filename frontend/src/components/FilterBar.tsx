@@ -173,6 +173,14 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           </button>
 
           <button
+            className={`toggle-filter-chip ${filters.under_15_days ? 'active' : ''}`}
+            onClick={() => onFilterChange({ under_15_days: !filters.under_15_days })}
+          >
+            <span>📅 Under 15 Days</span>
+          </button>
+
+
+          <button
             className={`toggle-filter-chip ${filters.closing_soon ? 'active' : ''}`}
             onClick={() => onFilterChange({ closing_soon: !filters.closing_soon })}
           >
