@@ -96,7 +96,15 @@
         "supervision consultancy",
         "solid waste management plant design",
         "sanitary landfill design",
-        "bio-mining design"
+        "bio-mining design",
+        "hospital design",
+        "residential design",
+        "smart house design",
+        "guest room design",
+        "guest house design",
+        "hostel rooms design",
+        "hostel design",
+        "land design"
       ],
       "phrases": [
         "preparation of dpr",
@@ -188,7 +196,10 @@
         "general consultant",
         "independent engineer for railway",
         "consultancy services for metro",
-        "consultancy services for railway"
+        "consultancy services for railway",
+        "railway track design",
+        "railway station design",
+        "railway related design"
       ],
       "phrases": [
         "detailed design consultancy",
@@ -223,7 +234,10 @@
         "survey work of various roads",
         "authority engineer for road",
         "independent engineer for road",
-        "supervision consultancy for highway"
+        "supervision consultancy for highway",
+        "bus stop design",
+        "bus shelter design",
+        "bus terminal design"
       ],
       "phrases": [
         "preparation of dpr for road",
@@ -393,6 +407,23 @@
     "berth design",
     "breakwater",
     "ash dyke design",
-    "tailing dam design"
+    "tailing dam design",
+    "hospital design",
+    "residential design",
+    "smart house design",
+    "guest room design",
+    "guest house design",
+    "hostel rooms design",
+    "hostel design",
+    "land design",
+    "railway track design",
+    "railway station design",
+    "railway related design",
+    "bus stop design",
+    "bus shelter design",
+    "bus terminal design",
+    "highway design",
+    "bridge design",
+    "railway station track and station design"
   ]
 }
