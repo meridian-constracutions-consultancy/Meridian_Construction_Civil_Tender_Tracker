@@ -178,6 +178,14 @@ def sync_seed_endpoint(db: Session = Depends(get_db)):
         doc_start = datetime.fromisoformat(s["document_download_start_date"]) if s.get("document_download_start_date") else None
         doc_end = datetime.fromisoformat(s["document_download_end_date"]) if s.get("document_download_end_date") else None
 
+        # Dynamically classify tender based on active keyword rules
+        cls_res = classification_engine.classify(
+            title=s.get("title", ""),
+            work_description=s.get("work_description"),
+            product_category=s.get("product_category"),
+            tender_category=s.get("tender_category")
+        )
+
         if existing_t:
             existing_t.published_date = p_date
             existing_t.bid_submission_deadline = b_date
@@ -190,7 +198,11 @@ def sync_seed_endpoint(db: Session = Depends(get_db)):
             existing_t.emd_amount = s.get("emd_amount")
             existing_t.tender_fee = s.get("tender_fee")
             existing_t.emd_exemption_allowed = s.get("emd_exemption_allowed")
-            existing_t.is_civil_construction = s.get("is_civil_construction", True)
+            existing_t.is_civil_construction = cls_res.is_civil_construction
+            existing_t.category_id = cls_res.category_id
+            existing_t.classification_score = cls_res.score
+            existing_t.matched_keywords = ", ".join(cls_res.matched_keywords) if cls_res.matched_keywords else None
+            existing_t.classification_reason = cls_res.reason
             existing_t.is_joint_venture_allowed = s.get("is_joint_venture_allowed", True)
             existing_t.is_sub_contracting_allowed = s.get("is_sub_contracting_allowed", True)
             existing_t.bidding_type = s.get("bidding_type", "2-Cover (Technical + Financial BOQ)")
@@ -223,17 +235,18 @@ def sync_seed_endpoint(db: Session = Depends(get_db)):
                 clarification_end_date=clar_date,
                 document_download_start_date=doc_start,
                 document_download_end_date=doc_end,
-                is_civil_construction=s.get("is_civil_construction", True),
-                category_id=s.get("category_id"),
-                classification_score=s.get("classification_score", 0.95),
-                matched_keywords=s.get("matched_keywords"),
+                is_civil_construction=cls_res.is_civil_construction,
+                category_id=cls_res.category_id,
+                classification_score=cls_res.score,
+                matched_keywords=", ".join(cls_res.matched_keywords) if cls_res.matched_keywords else None,
+                classification_reason=cls_res.reason,
                 is_joint_venture_allowed=s.get("is_joint_venture_allowed", True),
                 is_sub_contracting_allowed=s.get("is_sub_contracting_allowed", True),
                 bidding_type=s.get("bidding_type", "2-Cover (Technical + Financial BOQ)"),
                 covers_count=s.get("covers_count", 2),
                 pre_bid_venue=s.get("pre_bid_venue", "Office of the Superintending Engineer / Chief Engineer (Procurement)"),
                 content_hash=s.get("content_hash") or hashlib.sha256(f"{s['tender_id']}_{s.get('title', '')}".encode()).hexdigest(),
-                classification_method=s.get("classification_method", "RULE_BASED"),
+                classification_method="RULE_BASED",
                 status=s.get("status", "ACTIVE"),
                 original_url=s.get("original_url")
             )
