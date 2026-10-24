@@ -57,31 +57,44 @@ def update_keywords_settings(payload: KeywordsUpdateRequest, db: Session = Depen
 
     # 1. Update search keywords
     if payload.search_keywords is not None:
-        # Clean and deduplicate
         cleaned = []
         for k in payload.search_keywords:
-            k_clean = k.strip().lower()
-            if k_clean and k_clean not in cleaned:
+            k_clean = k.strip()
+            if k_clean and k_clean.lower() not in [c.lower() for c in cleaned]:
                 cleaned.append(k_clean)
         current_config["search_keywords"] = cleaned
 
+        # Auto-synchronize: Ensure every search keyword is also in category positive_keywords
+        # so crawler discovered tenders with that keyword are guaranteed to be classified!
+        cleaned_lower = {k.lower() for k in cleaned}
+        for cat in current_config.get("categories", []):
+            if cat.get("id") == "consultancy_pmc_dpr":
+                pos_list = cat.get("positive_keywords", [])
+                all_cat_pos = set()
+                for c in current_config.get("categories", []):
+                    for p in c.get("positive_keywords", []):
+                        all_cat_pos.add(p.lower())
+                for sk in cleaned:
+                    if sk.lower() not in all_cat_pos:
+                        pos_list.append(sk.lower())
+                cat["positive_keywords"] = pos_list
+                break
+
     # 2. Add single new keyword if provided
     if payload.new_keyword:
-        kw_clean = payload.new_keyword.strip().lower()
+        kw_clean = payload.new_keyword.strip()
         if kw_clean:
-            # Add to search_keywords
             search_kws = current_config.get("search_keywords", [])
-            if kw_clean not in search_kws:
+            if kw_clean.lower() not in [s.lower() for s in search_kws]:
                 search_kws.append(kw_clean)
             current_config["search_keywords"] = search_kws
 
-            # If category_id specified, add to category positive_keywords
             cat_id = payload.category_id or "consultancy_pmc_dpr"
             for cat in current_config.get("categories", []):
                 if cat.get("id") == cat_id:
                     pos_kws = cat.get("positive_keywords", [])
-                    if kw_clean not in pos_kws:
-                        pos_kws.append(kw_clean)
+                    if kw_clean.lower() not in [p.lower() for p in pos_kws]:
+                        pos_kws.append(kw_clean.lower())
                     cat["positive_keywords"] = pos_kws
                     break
 
@@ -93,14 +106,14 @@ def update_keywords_settings(payload: KeywordsUpdateRequest, db: Session = Depen
     if payload.disqualifying_negative_keywords is not None:
         current_config["disqualifying_negative_keywords"] = payload.disqualifying_negative_keywords
 
-    # 5. Persist to rules.json (Code level persistence)
+    # 5. Persist to rules.json (Code & JSON database on disk)
     try:
         classification_engine.update_rules(current_config)
     except Exception as e:
         logger.error(f"Error saving to rules.json: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to update rules on disk: {e}")
 
-    # 6. Persist to database SystemSetting (DB level persistence)
+    # 6. Persist to database SystemSetting (DB level JSON persistence)
     config_json = json.dumps(current_config, indent=2)
     db_setting = db.execute(
         select(SystemSetting).where(SystemSetting.key == "keywords_config")
@@ -124,12 +137,11 @@ def update_keywords_settings(payload: KeywordsUpdateRequest, db: Session = Depen
             product_category=t.product_category,
             tender_category=t.tender_category
         )
+        t.is_civil_construction = result.is_civil_construction
+        t.classification_score = result.score
+        t.category_id = result.category_id
+        t.matched_keywords = ", ".join(result.matched_keywords) if result.matched_keywords else None
         if result.is_civil_construction:
-            t.is_civil_construction = True
-            t.classification_score = result.score
-            t.category_id = result.category_id or t.category_id
-            if result.matched_keywords:
-                t.matched_keywords = ", ".join(result.matched_keywords)
             reclassified_count += 1
 
     db.commit()

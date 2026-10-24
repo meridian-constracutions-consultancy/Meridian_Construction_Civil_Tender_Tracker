@@ -47,13 +47,21 @@ export const KeywordsModal: React.FC<KeywordsModalProps> = ({
 
   if (!isOpen) return null;
 
+  // Official 25 Keywords
+  const OFFICIAL_KEYWORDS = [
+    "Consultancy", "Survey", "design", "soil", "geotech", "audit", "testing", "ndt",
+    "beutification", "landscapping", "landaqusition (la)", "dpr", "study", "physibility",
+    "plan", "pmc", "architecture", "structure", "bus stop", "railway", "dam", "bridge",
+    "highway", "station", "terminal"
+  ];
+
   // Add search keyword
   const handleAddSearchKeyword = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    const clean = newSearchKeyword.trim().toLowerCase();
+    const clean = newSearchKeyword.trim();
     if (!clean || !config) return;
 
-    if (!config.search_keywords.includes(clean)) {
+    if (!config.search_keywords.some(k => k.toLowerCase() === clean.toLowerCase())) {
       setConfig({
         ...config,
         search_keywords: [...config.search_keywords, clean],
@@ -67,7 +75,16 @@ export const KeywordsModal: React.FC<KeywordsModalProps> = ({
     if (!config) return;
     setConfig({
       ...config,
-      search_keywords: config.search_keywords.filter((kw) => kw !== keywordToRemove),
+      search_keywords: config.search_keywords.filter((kw) => kw.toLowerCase() !== keywordToRemove.toLowerCase()),
+    });
+  };
+
+  // Reset to the official 25 keywords
+  const handleResetToOfficialKeywords = () => {
+    if (!config) return;
+    setConfig({
+      ...config,
+      search_keywords: OFFICIAL_KEYWORDS,
     });
   };
 
@@ -208,9 +225,28 @@ export const KeywordsModal: React.FC<KeywordsModalProps> = ({
                       Keywords automatically searched on Rajasthan eProc & Central CPPP to discover new candidate tenders.
                     </p>
                   </div>
-                  <span style={{ fontSize: '12px', color: '#818cf8', fontWeight: 600, background: 'rgba(99, 102, 241, 0.15)', padding: '2px 8px', borderRadius: '12px' }}>
-                    {config?.search_keywords.length || 0} Keywords
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={handleResetToOfficialKeywords}
+                      style={{
+                        fontSize: '11px',
+                        color: '#a5b4fc',
+                        background: 'rgba(99, 102, 241, 0.1)',
+                        border: '1px solid rgba(99, 102, 241, 0.3)',
+                        borderRadius: '6px',
+                        padding: '3px 8px',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                      title="Reset to the 25 official keywords"
+                    >
+                      Reset to 25 Base Keywords
+                    </button>
+                    <span style={{ fontSize: '12px', color: '#818cf8', fontWeight: 600, background: 'rgba(99, 102, 241, 0.15)', padding: '2px 8px', borderRadius: '12px' }}>
+                      {config?.search_keywords.length || 0} Keywords
+                    </span>
+                  </div>
                 </div>
 
                 {/* Add search keyword input */}

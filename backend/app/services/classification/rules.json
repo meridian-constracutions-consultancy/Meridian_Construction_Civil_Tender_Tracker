@@ -35,7 +35,14 @@
         "substation civil design",
         "solar civil design",
         "ash dyke design",
-        "tailing dam design"
+        "tailing dam design",
+        "soil",
+        "geotech",
+        "audit",
+        "testing",
+        "ndt",
+        "dam",
+        "structure"
       ],
       "phrases": [
         "structural consultancy",
@@ -104,7 +111,21 @@
         "guest house design",
         "hostel rooms design",
         "hostel design",
-        "land design"
+        "land design",
+        "consultancy",
+        "survey",
+        "design",
+        "study",
+        "physibility",
+        "feasibility",
+        "plan",
+        "architecture",
+        "beutification",
+        "beautification",
+        "landscapping",
+        "landscaping",
+        "landaqusition (la)",
+        "land acquisition"
       ],
       "phrases": [
         "preparation of dpr",
@@ -155,7 +176,11 @@
         "runway design",
         "jetty design",
         "berth design",
-        "breakwater"
+        "breakwater",
+        "bridge",
+        "testing",
+        "ndt",
+        "dam"
       ],
       "phrases": [
         "design of bridge",
@@ -199,7 +224,10 @@
         "consultancy services for railway",
         "railway track design",
         "railway station design",
-        "railway related design"
+        "railway related design",
+        "railway",
+        "station",
+        "terminal"
       ],
       "phrases": [
         "detailed design consultancy",
@@ -237,7 +265,12 @@
         "supervision consultancy for highway",
         "bus stop design",
         "bus shelter design",
-        "bus terminal design"
+        "bus terminal design",
+        "highway",
+        "bus stop",
+        "terminal",
+        "land acquisition",
+        "landaqusition (la)"
       ],
       "phrases": [
         "preparation of dpr for road",
@@ -285,7 +318,8 @@
         "dpr for wastewater",
         "water supply scheme design",
         "sewerage network design",
-        "wastewater management"
+        "wastewater management",
+        "dam"
       ],
       "phrases": [
         "design of water supply scheme",
@@ -330,8 +364,6 @@
     "sweeper",
     "housekeeping consumables",
     "cleaning chemicals",
-    "rail track",
-    "railway track",
     "track doubling",
     "ballast",
     "track renewal",
@@ -363,8 +395,7 @@
     "pipeline leakages",
     "repairing of ac di ci",
     "leakage repair",
-    "ozonator",
-    "installation testing commissioning"
+    "ozonator"
   ],
   "contextual_negative_keywords": [
     "supply of computer",
@@ -381,49 +412,30 @@
     "pot hole filling"
   ],
   "search_keywords": [
+    "Consultancy",
+    "Survey",
     "design",
-    "consultancy",
-    "consultant",
-    "dpr",
-    "pmc",
-    "architectural",
-    "structural",
-    "proof checking",
-    "vetting",
-    "feasibility",
-    "survey",
-    "inspection",
+    "soil",
+    "geotech",
     "audit",
-    "master plan",
-    "geotechnical survey",
-    "gss civil design",
-    "substation civil design",
-    "solid waste management plant design",
-    "sanitary landfill design",
-    "bio-mining design",
-    "solar civil design",
-    "runway design",
-    "jetty design",
-    "berth design",
-    "breakwater",
-    "ash dyke design",
-    "tailing dam design",
-    "hospital design",
-    "residential design",
-    "smart house design",
-    "guest room design",
-    "guest house design",
-    "hostel rooms design",
-    "hostel design",
-    "land design",
-    "railway track design",
-    "railway station design",
-    "railway related design",
-    "bus stop design",
-    "bus shelter design",
-    "bus terminal design",
-    "highway design",
-    "bridge design",
-    "railway station track and station design"
+    "testing",
+    "ndt",
+    "beutification",
+    "landscapping",
+    "landaqusition (la)",
+    "dpr",
+    "study",
+    "physibility",
+    "plan",
+    "pmc",
+    "architecture",
+    "structure",
+    "bus stop",
+    "railway",
+    "dam",
+    "bridge",
+    "highway",
+    "station",
+    "terminal"
   ]
 }
