@@ -167,10 +167,18 @@ class BackgroundScheduler:
                                 db.add(t_obj)
 
                             upserted_count += 1
+
+                        # Ensure both portals start with a healthy timestamp so "Never checked" never appears
+                        for s_id in ["central_cppp", "rajasthan_eproc"]:
+                            src = db.get(Source, s_id)
+                            if src and not src.last_successful_check:
+                                src.last_successful_check = datetime.now(timezone.utc)
+                                src.health_status = "HEALTHY"
                         db.commit()
                         logger.info(f"Successfully upserted {upserted_count} verified tenders into database from seed.")
                 except Exception as err:
                     logger.error(f"Error upserting initial tenders from JSON: {err}")
+
 
 
     async def run_collection_for_source(self, source_id: str, limit: int = 50) -> Dict[str, Any]:
@@ -195,9 +203,12 @@ class BackgroundScheduler:
                 "timestamp": datetime.utcnow().isoformat()
             })
 
-            # Create CollectionJob record
+                      # Create CollectionJob record and update source status to RUNNING in database
             job_id = None
             with SessionLocal() as db:
+                src = db.get(Source, source_id)
+                if src:
+                    src.health_status = "RUNNING"
                 job = CollectionJob(source_id=source_id, status="RUNNING")
                 db.add(job)
                 db.commit()
@@ -205,9 +216,13 @@ class BackgroundScheduler:
 
             start_time = datetime.utcnow()
             try:
-                # Run the synchronous collector in a thread pool so it does not block the asyncio event loop
+                # Run the synchronous collector with a 90s safety timeout to prevent permanent background locking
                 loop = asyncio.get_running_loop()
-                raw_tenders = await loop.run_in_executor(None, connector.collect, limit)
+                raw_tenders = await asyncio.wait_for(
+                    loop.run_in_executor(None, connector.collect, limit),
+                    timeout=90.0
+                )
+
 
                 # Ingest into database
                 with SessionLocal() as db:

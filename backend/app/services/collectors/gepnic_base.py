@@ -194,7 +194,7 @@ class GePNICBaseCollector(BaseCollector):
                         if url not in discovered_urls:
                             discovered_urls.add(url)
                             candidate_links.append((url, title))
-                    if len(candidate_links) >= limit * 2:
+                    if len(candidate_links) >= limit:
                         break
                 except Exception as e:
                     logger.warning(f"[{self.source_id}] Keyword search error for '{kw}': {e}")
