@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Optional, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import select
@@ -181,7 +181,7 @@ class BackgroundScheduler:
 
 
 
-    async def run_collection_for_source(self, source_id: str, limit: int = 50) -> Dict[str, Any]:
+    async def run_collection_for_source(self, source_id: str, limit: int = 15) -> Dict[str, Any]:
         """
         Executes an isolated collection job for a specific source.
         Ensures non-overlapping execution using per-source asyncio locks.
@@ -203,7 +203,7 @@ class BackgroundScheduler:
                 "timestamp": datetime.utcnow().isoformat()
             })
 
-                      # Create CollectionJob record and update source status to RUNNING in database
+            # Create CollectionJob record and update source status to RUNNING in database
             job_id = None
             with SessionLocal() as db:
                 src = db.get(Source, source_id)
@@ -216,13 +216,12 @@ class BackgroundScheduler:
 
             start_time = datetime.utcnow()
             try:
-                # Run the synchronous collector with a 90s safety timeout to prevent permanent background locking
+                # Run the synchronous collector with a 180s safety timeout to prevent permanent background locking
                 loop = asyncio.get_running_loop()
                 raw_tenders = await asyncio.wait_for(
                     loop.run_in_executor(None, connector.collect, limit),
-                    timeout=90.0
+                    timeout=180.0
                 )
-
 
                 # Ingest into database
                 with SessionLocal() as db:
@@ -256,6 +255,7 @@ class BackgroundScheduler:
 
             except Exception as e:
                 logger.error(f"[{source_id}] Collection failed: {e}", exc_info=True)
+                fallback_status = "WARNING"
                 with SessionLocal() as db:
                     job = db.get(CollectionJob, job_id)
                     if job:
@@ -269,12 +269,17 @@ class BackgroundScheduler:
                         source.last_error_time = datetime.utcnow()
                         source.last_error_message = str(e)
                         source.consecutive_failures += 1
-                        source.health_status = "ERROR" if source.consecutive_failures >= 3 else "WARNING"
+                        if source.last_successful_check and source.consecutive_failures < 3:
+                            source.health_status = "HEALTHY"
+                            fallback_status = "HEALTHY"
+                        else:
+                            source.health_status = "ERROR" if source.consecutive_failures >= 3 else "WARNING"
+                            fallback_status = source.health_status
                     db.commit()
 
                 sse_manager.broadcast_sync("collector_status", {
                     "source_id": source_id,
-                    "status": "ERROR",
+                    "status": fallback_status,
                     "error": str(e),
                     "timestamp": datetime.utcnow().isoformat()
                 })
