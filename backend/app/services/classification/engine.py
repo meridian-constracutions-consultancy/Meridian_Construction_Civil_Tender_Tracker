@@ -54,7 +54,8 @@ class ClassificationEngine:
             self.rules["search_keywords"] = default_search
             loaded_search = default_search
 
-        self.search_keywords = [k.strip().lower() for k in loaded_search if k.strip()]
+        self.raw_search_keywords = [k.strip() for k in loaded_search if k.strip()]
+        self.search_keywords = [k.lower() for k in self.raw_search_keywords]
         self.categories = self.rules.get("categories", [])
         self.disqualifying_negatives = [k.lower() for k in self.rules.get("disqualifying_negative_keywords", [])]
         self.contextual_negatives = [k.lower() for k in self.rules.get("contextual_negative_keywords", [])]
@@ -65,10 +66,10 @@ class ClassificationEngine:
 
     def get_search_keywords(self) -> List[str]:
         """Returns the active search keywords for portal scrapers."""
-        return list(self.search_keywords)
+        return list(self.raw_search_keywords)
 
     def get_keywords_config(self) -> Dict[str, Any]:
-        """Returns the full keywords and categories configuration."""
+        """Returns the full keywords configuration."""
         return dict(self.rules)
 
     def update_rules(self, updated_rules: Dict[str, Any]):
@@ -85,25 +86,52 @@ class ClassificationEngine:
         tender_category: Optional[str] = None
     ) -> ClassificationResult:
         """
-        Deterministically classifies a tender based on title, description, and portal categories.
-        Prevents false positives on IT, vehicle, stationery, and healthcare procurements.
+        Classifies a tender strictly based on user-entered keywords.
+        Only tenders matching one or more entered search keywords are displayed.
         """
         title_lower = (title or "").lower()
         desc_lower = (work_description or "").lower()
         combined_text = f"{title_lower} {desc_lower}"
-        prod_cat_lower = (product_category or "").lower()
-        tender_cat_lower = (tender_category or "").lower()
 
-        # Step 1: Check for explicit disqualifying negatives in the title
+        # Common portal spelling variations and abbreviations for the user's keywords
+        KEYWORD_SYNONYMS: Dict[str, List[str]] = {
+            "beutification": [r"\bbeutification\b", r"\bbeautification\b", r"\bbeautif\w*"],
+            "beautification": [r"\bbeutification\b", r"\bbeautification\b", r"\bbeautif\w*"],
+            "landscapping": [r"\blandscapping\b", r"\blandscaping\b", r"\blandscape\w*"],
+            "landscaping": [r"\blandscapping\b", r"\blandscaping\b", r"\blandscape\w*"],
+            "physibility": [r"\bphysibility\b", r"\bfeasibility\b"],
+            "feasibility": [r"\bphysibility\b", r"\bfeasibility\b"],
+            "landaqusition (la)": [r"\bland\s*ac?qui?sition\b", r"\bla\b", r"\blandaqusition\b"],
+            "land acquisition": [r"\bland\s*ac?qui?sition\b", r"\bla\b", r"\blandaqusition\b"],
+            "geotech": [r"\bgeotech\w*"],
+            "architecture": [r"\barchitect\w*"],
+            "structure": [r"\bstructur\w*"],
+            "consultancy": [r"\bconsult\w*"],
+            "survey": [r"\bsurvey\w*"],
+            "design": [r"\bdesign\w*"],
+            "study": [r"\bstud(y|ies)\b"],
+            "pmc": [r"\bpmc\b", r"\bproject\s+management\s+consult\w*"],
+            "dpr": [r"\bdpr\b", r"\bdetailed\s+project\s+report\b"],
+            "bus stop": [r"\bbus\s+stop\b", r"\bbus\s+shelter\b", r"\bbus\s+stand\b"],
+            "railway": [r"\brailway\w*", r"\brail\b"],
+            "bridge": [r"\bbridge\w*", r"\bflyover\w*", r"\brob\b", r"\brub\b"],
+            "dam": [r"\bdam\b", r"\bdams\b", r"\bcheck\s+dam\w*"],
+            "highway": [r"\bhighway\w*", r"\bexpressway\w*"],
+            "station": [r"\bstation\w*"],
+            "terminal": [r"\bterminal\w*"],
+            "ndt": [r"\bndt\b", r"\bnon\s*destructive\s*testing\b", r"\bnon-destructive\s*testing\b"],
+            "soil": [r"\bsoil\b"],
+            "audit": [r"\baudit\w*"],
+            "testing": [r"\btest(ing)?\b"],
+            "plan": [r"\bplan\w*", r"\bmaster\s*plan\w*"],
+        }
+
+        # Step 1: Disqualify completely irrelevant non-civil goods procurements (medical, vehicle, IT supply)
         for disq in self.disqualifying_negatives:
-            # Word boundary check for the disqualifier
             if re.search(r'\b' + re.escape(disq) + r'\b', title_lower):
-                # Verify if it has explicit design/consultancy context before rejecting (e.g. "design of retaining wall")
                 has_design_context = any(
-                    strong in title_lower for strong in [
-                        "design", "dpr", "consultan", "architect", "structural",
-                        "proof check", "vetting", "feasibility", "audit", "survey"
-                    ]
+                    re.search(r'\b' + kw.lower() + r'\b', title_lower)
+                    for kw in ["design", "dpr", "consultancy", "consultant", "architecture", "structural", "survey", "feasibility"]
                 )
                 if not has_design_context:
                     return ClassificationResult(
@@ -112,92 +140,69 @@ class ClassificationEngine:
                         category_name=None,
                         score=0.0,
                         matched_keywords=[disq],
-                        reason=f"Disqualified: Physical execution/non-design keyword '{disq}' without design context"
+                        reason=f"Disqualified: '{disq}' without design/consultancy context"
                     )
 
-        # Step 2: Product category bonus from GePNIC portal
-        base_score = 0.0
-        portal_matches: List[str] = []
-        if "consult" in prod_cat_lower or "design" in prod_cat_lower:
-            base_score += 0.3
-            portal_matches.append(f"portal_product_category:{product_category}")
-        elif "architecture" in prod_cat_lower or "survey" in prod_cat_lower:
-            base_score += 0.3
-            portal_matches.append(f"portal_product_category:{product_category}")
+        # Step 2: Match strictly against the active entered keywords
+        matched_keywords: List[str] = []
 
-        # Step 3: Match against configured civil categories
-        best_category_id = None
-        best_category_name = None
-        best_category_score = 0.0
-        best_weighted_score = 0.0
-        all_matched_keywords: List[str] = list(portal_matches)
+        for kw in self.raw_search_keywords:
+            kw_clean = kw.strip()
+            if not kw_clean:
+                continue
+            kw_lower = kw_clean.lower()
+            patterns = KEYWORD_SYNONYMS.get(kw_lower)
+            is_matched = False
 
-        category_weights = {
-            "water_supply_drainage": 1.3,
-            "bridges_flyovers": 1.25,
-            "metro_railways": 1.25,
-            "roads_highways": 1.2,
-            "structural_engineering": 1.15,
-            "consultancy_pmc_dpr": 1.0,
-        }
+            if patterns:
+                for pat in patterns:
+                    if re.search(pat, combined_text, re.IGNORECASE):
+                        is_matched = True
+                        break
+            else:
+                safe_kw = re.escape(kw_lower)
+                if re.search(r'\b' + safe_kw + r'\b', combined_text, re.IGNORECASE) or kw_lower in combined_text:
+                    is_matched = True
 
-        for cat in self.categories:
-            cat_id = cat["id"]
-            cat_name = cat["name"]
-            cat_score = 0.0
-            cat_keywords_matched = []
+            if is_matched:
+                matched_keywords.append(kw_clean)
 
-            # Check phrases (weight: 0.35 each)
-            for phrase in cat.get("phrases", []):
-                if phrase in combined_text:
-                    cat_score += 0.35
-                    cat_keywords_matched.append(phrase)
+        # Step 3: If no user keyword matched, DO NOT SHOW
+        if not matched_keywords:
+            return ClassificationResult(
+                is_civil_construction=False,
+                category_id=None,
+                category_name=None,
+                score=0.0,
+                matched_keywords=[],
+                reason="No matching keywords from active user search list"
+            )
 
-            # Check keywords (weight: 0.20 each)
-            for kw in cat.get("positive_keywords", []):
-                if re.search(r'\b' + re.escape(kw) + r'\b', combined_text):
-                    if kw not in cat_keywords_matched:
-                        cat_score += 0.20
-                        cat_keywords_matched.append(kw)
-
-            # Domain-specific categories get priority over general PMC/consultancy container
-            weighted_score = cat_score * category_weights.get(cat_id, 1.0) if cat_score > 0 else 0.0
-
-            if weighted_score > best_weighted_score:
-                best_weighted_score = weighted_score
-                best_category_score = cat_score
-                best_category_id = cat_id
-                best_category_name = cat_name
-                all_matched_keywords.extend(cat_keywords_matched)
-
-        # Deduplicate matched keywords
-        unique_matches = list(dict.fromkeys(all_matched_keywords))
-
-        total_score = min(1.0, base_score + best_category_score)
-        
-        # Determine design & consultancy classification threshold
-        is_design_consultancy = False
-        reason_parts = []
-
-        if best_category_score >= 0.20 and best_category_id:
-            is_design_consultancy = True
-            total_score = min(1.0, best_category_score + (0.2 if "consult" in prod_cat_lower or "design" in prod_cat_lower else 0.0))
-            reason_parts.append(f"Design & Consultancy match (score {round(total_score, 2)}) in '{best_category_name}'")
+        # Step 4: Map to appropriate category for DB FK integrity & clean UI tag
+        matched_lower = {k.lower() for k in matched_keywords}
+        if any(k in matched_lower for k in ["railway", "metro", "station"]):
+            cat_id = "metro_railways"
+            cat_name = "Metro & Railway Design / Consultancy"
+        elif "bridge" in matched_lower:
+            cat_id = "bridges_flyovers"
+            cat_name = "Bridges, ROBs & Flyovers Design"
+        elif "highway" in matched_lower:
+            cat_id = "roads_highways"
+            cat_name = "Highways & Roads Design / DPR Consultancy"
+        elif any(k in matched_lower for k in ["structure", "soil", "geotech", "testing", "ndt", "dam"]):
+            cat_id = "structural_engineering"
+            cat_name = "Structural Engineering & Design"
         else:
-            is_design_consultancy = False
-            total_score = 0.0
-            reason_parts.append("Pure contractor/physical execution work (lacks design, structural, architectural, or consultancy indicators)")
-
-        if unique_matches:
-            reason_parts.append(f"Matched signals: {', '.join(unique_matches[:5])}")
+            cat_id = "consultancy_pmc_dpr"
+            cat_name = "Architecture, PMC & DPR Consultancy"
 
         return ClassificationResult(
-            is_civil_construction=is_design_consultancy,
-            category_id=best_category_id if is_design_consultancy else None,
-            category_name=best_category_name if is_design_consultancy else None,
-            score=total_score,
-            matched_keywords=unique_matches if is_design_consultancy else [],
-            reason="; ".join(reason_parts)
+            is_civil_construction=True,
+            category_id=cat_id,
+            category_name=cat_name,
+            score=1.0,
+            matched_keywords=matched_keywords,
+            reason=f"Matched user keywords: {', '.join(matched_keywords)}"
         )
 
 # Global singleton engine
