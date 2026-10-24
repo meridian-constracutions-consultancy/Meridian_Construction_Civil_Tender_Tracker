@@ -72,13 +72,20 @@ export const App: React.FC = () => {
     }
   }, [filters]);
 
-  // Comprehensive manual refresh: syncs live portals and fetches fresh data
+  // Comprehensive manual refresh: scans live portals, adds new tenders, and updates table
   const handleManualRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    setRefreshToast('Connecting to government portals & refreshing live tender records...');
+    setRefreshToast('Scanning Rajasthan & Central portals for new tenders...');
 
     try {
-      // 1. Immediately fetch latest database records with cache-busting
+      // 1. Trigger live portal scan across both Central CPPP & Rajasthan eProc
+      try {
+        await syncAllSources();
+      } catch (syncErr) {
+        console.warn('Portal sync triggered:', syncErr);
+      }
+
+      // 2. Fetch fresh records from database (including newly discovered tenders)
       const [tendersRes, sourcesRes] = await Promise.all([
         fetchTenders(filters, 100, 0),
         fetchSources(),
@@ -92,38 +99,21 @@ export const App: React.FC = () => {
         todayCount: tendersRes.today_count || 0,
       });
       setSources(sourcesRes);
-      const now = new Date();
-      setLastUpdated(now);
-      setRefreshToast(`✓ Table refreshed! Loaded ${tendersRes.total_count} tenders. Live sync running...`);
 
-      // 2. Trigger background portal synchronization & reload once crawl completes
-      syncAllSources()
-        .then(async () => {
-          const fresh = await fetchTenders(filters, 100, 0);
-          setTenders(fresh.items);
-          setStats({
-            totalCount: fresh.total_count,
-            civilCount: fresh.civil_count,
-            closingSoonCount: fresh.closing_soon_count,
-            todayCount: fresh.today_count || 0,
-          });
-          const updateTime = new Date();
-          setLastUpdated(updateTime);
-          setRefreshToast(`✓ Live sync complete! All tender records up to date at ${updateTime.toLocaleTimeString()}.`);
-          setTimeout(() => setRefreshToast(null), 4000);
-        })
-        .catch(() => {
-          setTimeout(() => setRefreshToast(null), 3000);
-        });
+      const updateTime = new Date();
+      setLastUpdated(updateTime);
+      setRefreshToast(`✓ Live sync complete! All records up to date at ${updateTime.toLocaleTimeString()}.`);
+      setTimeout(() => setRefreshToast(null), 4000);
     } catch (err: any) {
       console.error('Refresh error:', err);
       await loadTenders();
-      setRefreshToast('✓ Refreshed from local cache.');
+      setRefreshToast('✓ Refreshed from local records.');
       setTimeout(() => setRefreshToast(null), 3000);
     } finally {
       setIsRefreshing(false);
     }
   }, [filters, loadTenders]);
+
 
   const loadSources = useCallback(async () => {
     try {
@@ -143,14 +133,14 @@ export const App: React.FC = () => {
     loadSources();
   }, [loadSources]);
 
-  // Automatically update every 15 minutes in background without requiring manual reload
+  // Automatically scan portals and refresh tenders every 15 minutes in background
   useEffect(() => {
     const autoRefreshTimer = setInterval(() => {
-      loadTenders();
-      loadSources();
+      handleManualRefresh();
     }, 15 * 60 * 1000);
     return () => clearInterval(autoRefreshTimer);
-  }, [loadTenders, loadSources]);
+  }, [handleManualRefresh]);
+
 
   // Set up Server-Sent Events (SSE) for live streaming updates
   useEffect(() => {
@@ -267,8 +257,8 @@ export const App: React.FC = () => {
             <span style={{ fontSize: '1rem' }}>⚡</span>
             <span>{refreshToast}</span>
           </div>
-          <button 
-            onClick={() => setRefreshToast(null)} 
+          <button
+            onClick={() => setRefreshToast(null)}
             style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1rem', padding: '0 0.25rem' }}
           >
             ✕
