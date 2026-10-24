@@ -179,3 +179,149 @@ def toggle_save_tender(id: str, notes: Optional[str] = None, db: Session = Depen
         db.add(new_save)
         db.commit()
         return {"status": "SAVED", "tender_id": id}
+
+
+from pydantic import BaseModel
+import hashlib
+from app.services.classification.engine import classification_engine
+
+class ImportTenderItem(BaseModel):
+    tender_id: str
+    title: str
+    reference_number: Optional[str] = None
+    work_description: Optional[str] = None
+    organization_name: Optional[str] = "Indian Railways"
+    department: Optional[str] = None
+    state: Optional[str] = "Central / All India"
+    location: Optional[str] = None
+    district: Optional[str] = None
+    estimated_value: Optional[float] = None
+    emd_amount: Optional[float] = None
+    tender_fee: Optional[float] = None
+    published_date: Optional[str] = None
+    bid_submission_deadline: Optional[str] = None
+    bid_opening_date: Optional[str] = None
+    portal_name: Optional[str] = "Indian Railways E-Procurement System (IREPS)"
+    original_url: Optional[str] = "https://www.ireps.gov.in/"
+    source_id: Optional[str] = "ireps"
+
+class ImportTendersPayload(BaseModel):
+    tenders: list[ImportTenderItem]
+
+@router.post("/import")
+def import_external_tenders(payload: ImportTendersPayload, db: Session = Depends(get_db)):
+    """
+    Accepts external tenders (e.g. from IREPS 1-Click Sync), applies strict 25-keyword rule,
+    and saves matching civil design/consultancy tenders to database.
+    """
+    received_count = len(payload.tenders)
+    accepted_civil_count = 0
+    updated_count = 0
+
+    for item in payload.tenders:
+        t_id = (item.tender_id or "").strip()
+        t_title = (item.title or "").strip()
+        if not t_id or not t_title:
+            continue
+
+        # Classify strictly against active 25 keywords
+        cls_res = classification_engine.classify(
+            title=t_title,
+            work_description=item.work_description,
+            product_category=None,
+            tender_category=None
+        )
+
+        # Parse date strings safely
+        def parse_dt(d_str: Optional[str]):
+            if not d_str:
+                return None
+            try:
+                return datetime.fromisoformat(d_str.replace("Z", "+00:00"))
+            except Exception:
+                pass
+            for fmt in ["%d-%m-%Y %H:%M", "%d/%m/%Y %H:%M", "%d-%b-%Y %I:%M %p", "%d-%b-%Y %H:%M", "%Y-%m-%d %H:%M:%S"]:
+                try:
+                    return datetime.strptime(d_str.strip(), fmt)
+                except Exception:
+                    continue
+            return None
+
+        p_date = parse_dt(item.published_date) or datetime.utcnow()
+        b_date = parse_dt(item.bid_submission_deadline)
+        o_date = parse_dt(item.bid_opening_date)
+
+        existing = db.scalar(select(Tender).where(Tender.tender_id == t_id))
+        if existing:
+            existing.title = t_title
+            if item.reference_number:
+                existing.reference_number = item.reference_number
+            if item.work_description:
+                existing.work_description = item.work_description
+            if item.organization_name:
+                existing.organization_name = item.organization_name
+            if item.department:
+                existing.department = item.department
+            if item.estimated_value:
+                existing.estimated_value = item.estimated_value
+            if item.emd_amount:
+                existing.emd_amount = item.emd_amount
+            if b_date:
+                existing.bid_submission_deadline = b_date
+            if o_date:
+                existing.bid_opening_date = o_date
+            existing.is_civil_construction = cls_res.is_civil_construction
+            existing.category_id = cls_res.category_id
+            existing.classification_score = cls_res.score
+            existing.matched_keywords = ", ".join(cls_res.matched_keywords) if cls_res.matched_keywords else None
+            existing.classification_reason = cls_res.reason
+            existing.last_verified_at = datetime.utcnow()
+            updated_count += 1
+        else:
+            new_tender = Tender(
+                tender_id=t_id,
+                reference_number=item.reference_number,
+                title=t_title,
+                work_description=item.work_description or f"{t_title}. Published on IREPS.",
+                organization_name=item.organization_name or "Indian Railways",
+                department=item.department,
+                state=item.state or "Central / All India",
+                location=item.location or "Central / All India",
+                district=item.district,
+                source_id="ireps",
+                original_url=item.original_url or "https://www.ireps.gov.in/",
+                portal_name=item.portal_name or "Indian Railways E-Procurement System (IREPS)",
+                published_date=p_date,
+                bid_submission_deadline=b_date,
+                bid_opening_date=o_date,
+                estimated_value=item.estimated_value,
+                emd_amount=item.emd_amount,
+                tender_fee=item.tender_fee,
+                is_civil_construction=cls_res.is_civil_construction,
+                category_id=cls_res.category_id,
+                classification_score=cls_res.score,
+                matched_keywords=", ".join(cls_res.matched_keywords) if cls_res.matched_keywords else None,
+                classification_reason=cls_res.reason,
+                classification_method="IREPS_1CLICK_SYNC",
+                status="ACTIVE",
+                is_joint_venture_allowed=True,
+                is_sub_contracting_allowed=True,
+                bidding_type="2-Cover (Technical + Financial BOQ)",
+                covers_count=2,
+                content_hash=hashlib.sha256(f"{t_id}_{t_title}".encode()).hexdigest(),
+                last_verified_at=datetime.utcnow()
+            )
+            db.add(new_tender)
+
+        if cls_res.is_civil_construction:
+            accepted_civil_count += 1
+
+    db.commit()
+
+    return {
+        "status": "SUCCESS",
+        "received_count": received_count,
+        "accepted_civil_count": accepted_civil_count,
+        "updated_count": updated_count,
+        "message": f"Processed {received_count} IREPS tenders: {accepted_civil_count} matched your 25 keywords and are live on your dashboard!"
+    }

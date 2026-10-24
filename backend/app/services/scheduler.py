@@ -81,6 +81,16 @@ class BackgroundScheduler:
                     "is_enabled": True,
                     "poll_interval_minutes": 10,
                     "health_status": "READY"
+                },
+                {
+                    "id": "ireps",
+                    "name": "Indian Railways E-Procurement System (IREPS)",
+                    "base_url": "https://www.ireps.gov.in/",
+                    "listing_url": "https://www.ireps.gov.in/",
+                    "connector_type": "ireps_sync",
+                    "is_enabled": True,
+                    "poll_interval_minutes": 60,
+                    "health_status": "READY"
                 }
             ]
             for s_data in sources_to_seed:

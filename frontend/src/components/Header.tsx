@@ -8,6 +8,7 @@ interface HeaderProps {
   onRefresh: () => void;
   isRefreshing: boolean;
   onOpenSettings?: () => void;
+  onOpenIrepsSync?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -15,7 +16,8 @@ export const Header: React.FC<HeaderProps> = ({
   lastUpdated,
   onRefresh,
   isRefreshing,
-  onOpenSettings
+  onOpenSettings,
+  onOpenIrepsSync
 }) => {
   return (
     <header className="app-header">
@@ -83,6 +85,27 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Sliders size={14} color="#818cf8" />
             <span>Keywords</span>
+          </button>
+        )}
+
+        {/* IREPS Railway Sync Button */}
+        {onOpenIrepsSync && (
+          <button
+            className="btn btn-outline btn-ireps-sync"
+            onClick={onOpenIrepsSync}
+            title="Import Indian Railway tenders directly from IREPS with 1-click sync"
+            aria-label="Open IREPS Sync Tool"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'rgba(234, 88, 12, 0.12)',
+              borderColor: 'rgba(234, 88, 12, 0.4)',
+              color: '#fdba74',
+              fontWeight: 500
+            }}
+          >
+            <span>🚆 IREPS Sync</span>
           </button>
         )}
       </div>

@@ -5,6 +5,7 @@ import { FilterBar } from './components/FilterBar';
 import { TenderTable } from './components/TenderTable';
 import { TenderDetailModal } from './components/TenderDetailModal';
 import { KeywordsModal } from './components/KeywordsModal';
+import { IrepsSyncModal } from './components/IrepsSyncModal';
 import { SourcesHealth } from './components/SourcesHealth';
 import { TenderListItem, SourceRead, FilterState } from './types/tender';
 import { fetchTenders, fetchSources, syncAllSources } from './api/client';
@@ -19,6 +20,7 @@ export const App: React.FC = () => {
   const [sseStatus, setSseStatus] = useState<SSEConnectionStatus>('connecting');
   const [selectedTender, setSelectedTender] = useState<TenderListItem | null>(null);
   const [isKeywordsModalOpen, setIsKeywordsModalOpen] = useState<boolean>(false);
+  const [isIrepsModalOpen, setIsIrepsModalOpen] = useState<boolean>(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const [stats, setStats] = useState({
@@ -234,6 +236,7 @@ export const App: React.FC = () => {
         onRefresh={handleManualRefresh}
         isRefreshing={isRefreshing}
         onOpenSettings={() => setIsKeywordsModalOpen(true)}
+        onOpenIrepsSync={() => setIsIrepsModalOpen(true)}
       />
 
 
@@ -315,6 +318,17 @@ export const App: React.FC = () => {
         onClose={() => setIsKeywordsModalOpen(false)}
         onSaved={() => {
           setRefreshToast('✓ Keywords saved! Code rules and database updated.');
+          loadTenders();
+          setTimeout(() => setRefreshToast(null), 4000);
+        }}
+      />
+
+      {/* Indian Railways IREPS 1-Click Sync Modal */}
+      <IrepsSyncModal
+        isOpen={isIrepsModalOpen}
+        onClose={() => setIsIrepsModalOpen(false)}
+        onSyncComplete={() => {
+          setRefreshToast('✓ Railway tenders synced successfully from IREPS!');
           loadTenders();
           setTimeout(() => setRefreshToast(null), 4000);
         }}
