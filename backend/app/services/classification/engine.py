@@ -93,41 +93,47 @@ class ClassificationEngine:
         desc_lower = (work_description or "").lower()
         combined_text = f"{title_lower} {desc_lower}"
 
-        # Common portal spelling variations and abbreviations for the user's keywords
+        # Common portal spelling variations and abbreviations for the user's keywords (strict word boundaries)
         KEYWORD_SYNONYMS: Dict[str, List[str]] = {
-            "beutification": [r"\bbeutification\b", r"\bbeautification\b", r"\bbeautif\w*"],
-            "beautification": [r"\bbeutification\b", r"\bbeautification\b", r"\bbeautif\w*"],
-            "landscapping": [r"\blandscapping\b", r"\blandscaping\b", r"\blandscape\w*"],
-            "landscaping": [r"\blandscapping\b", r"\blandscaping\b", r"\blandscape\w*"],
+            "beutification": [r"\bbeutification\b", r"\bbeautification\b", r"\bbeautify\b"],
+            "beautification": [r"\bbeutification\b", r"\bbeautification\b", r"\bbeautify\b"],
+            "landscapping": [r"\blandscapping\b", r"\blandscaping\b", r"\blandscape\b"],
+            "landscaping": [r"\blandscapping\b", r"\blandscaping\b", r"\blandscape\b"],
             "physibility": [r"\bphysibility\b", r"\bfeasibility\b"],
             "feasibility": [r"\bphysibility\b", r"\bfeasibility\b"],
             "landaqusition (la)": [r"\bland\s*ac?qui?sition\b", r"\bla\b", r"\blandaqusition\b"],
             "land acquisition": [r"\bland\s*ac?qui?sition\b", r"\bla\b", r"\blandaqusition\b"],
-            "geotech": [r"\bgeotech\w*"],
-            "architecture": [r"\barchitect\w*"],
-            "structure": [r"\bstructur\w*"],
-            "consultancy": [r"\bconsult\w*"],
-            "survey": [r"\bsurvey\w*"],
-            "design": [r"\bdesign\w*"],
-            "study": [r"\bstud(y|ies)\b"],
-            "pmc": [r"\bpmc\b", r"\bproject\s+management\s+consult\w*"],
+            "geotech": [r"\bgeotech\b", r"\bgeotechnical\b"],
+            "architecture": [r"\barchitecture\b", r"\barchitectural\b", r"\barchitect\b", r"\barchitects\b"],
+            "structure": [r"\bstructure\b", r"\bstructures\b", r"\bstructural\b"],
+            "consultancy": [r"\bconsultancy\b", r"\bconsultant\b", r"\bconsultants\b", r"\bconsulting\b"],
+            "survey": [r"\bsurvey\b", r"\bsurveys\b", r"\bsurveying\b", r"\bsurveyor\b", r"\bsurveyors\b"],
+            "design": [r"\bdesign\b", r"\bdesigns\b", r"\bdesigning\b", r"\bdesigner\b"],
+            "study": [r"\bstudy\b", r"\bstudies\b"],
+            "pmc": [r"\bpmc\b", r"\bproject\s+management\s+consult(ancy|ant|ants|ing)?\b"],
             "dpr": [r"\bdpr\b", r"\bdetailed\s+project\s+report\b"],
-            "bus stop": [r"\bbus\s+stop\b", r"\bbus\s+shelter\b", r"\bbus\s+stand\b"],
-            "railway": [r"\brailway\w*", r"\brail\b"],
-            "bridge": [r"\bbridge\w*", r"\bflyover\w*", r"\brob\b", r"\brub\b"],
-            "dam": [r"\bdam\b", r"\bdams\b", r"\bcheck\s+dam\w*"],
-            "highway": [r"\bhighway\w*", r"\bexpressway\w*"],
-            "station": [r"\bstation\w*"],
-            "terminal": [r"\bterminal\w*"],
-            "ndt": [r"\bndt\b", r"\bnon\s*destructive\s*testing\b", r"\bnon-destructive\s*testing\b"],
-            "soil": [r"\bsoil\b"],
-            "audit": [r"\baudit\w*"],
-            "testing": [r"\btest(ing)?\b"],
-            "plan": [r"\bplan\w*", r"\bmaster\s*plan\w*"],
+            "bus stop": [r"\bbus\s+stop\b", r"\bbus\s+shelter\b", r"\bbus\s+stand\b", r"\bbus\s+terminal\b"],
+            "railway": [r"\brailway\b", r"\brailways\b", r"\brail\b"],
+            "bridge": [r"\bbridge\b", r"\bbridges\b", r"\bflyover\b", r"\bflyovers\b", r"\brob\b", r"\brub\b"],
+            "dam": [r"\bdam\b", r"\bdams\b", r"\bcheck\s*dam\b"],
+            "highway": [r"\bhighway\b", r"\bhighways\b", r"\bexpressway\b", r"\bexpressways\b"],
+            "station": [r"\bstation\b", r"\bstations\b"],
+            "terminal": [r"\bterminal\b", r"\bterminals\b"],
+            "ndt": [r"\bndt\b", r"\bnon[\s-]*destructive\s*testing\b"],
+            "soil": [r"\bsoil\b", r"\bsoils\b"],
+            "audit": [r"\baudit\b", r"\baudits\b", r"\bauditing\b"],
+            "testing": [r"\btesting\b", r"\btest\b", r"\btests\b"],
+            "plan": [r"\bplan\b", r"\bplans\b", r"\bplanning\b", r"\bmaster\s*plan\b"],
         }
 
-        # Step 1: Disqualify completely irrelevant non-civil goods procurements (medical, vehicle, IT supply)
-        for disq in self.disqualifying_negatives:
+        # Step 1: Disqualify completely irrelevant non-civil goods procurements (medical, vehicle, IT supply, furniture)
+        furniture_and_goods_negatives = [
+            "supply of chair", "supply of chairs", "seater chair", "supply of furniture",
+            "purchase of furniture", "supply of medicine", "purchase of vehicle", "supply of computer"
+        ]
+        all_negatives = self.disqualifying_negatives + furniture_and_goods_negatives
+
+        for disq in all_negatives:
             if re.search(r'\b' + re.escape(disq) + r'\b', title_lower):
                 has_design_context = any(
                     re.search(r'\b' + kw.lower() + r'\b', title_lower)
