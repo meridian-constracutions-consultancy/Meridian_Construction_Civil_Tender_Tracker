@@ -66,11 +66,16 @@ export const TenderDetailModal: React.FC<TenderDetailModalProps> = ({ tender, on
         {/* Modal Header */}
         <div className="modal-header">
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
               <span className="badge badge-source">{tender.portal_name}</span>
               <span className="badge badge-civil">
                 {tender.category_id ? tender.category_id.replace('_', ' ').toUpperCase() : 'CIVIL'}
               </span>
+              {tender.matched_keywords && (
+                <span className="badge" style={{ background: 'rgba(99, 102, 241, 0.2)', border: '1px solid rgba(99, 102, 241, 0.4)', color: '#a5b4fc', fontSize: '11px', fontWeight: 600 }}>
+                  🎯 Matched: {tender.matched_keywords}
+                </span>
+              )}
               {tender.status === 'AMENDED' && <span className="badge badge-amended">AMENDED</span>}
             </div>
             <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#fff', lineHeight: 1.3 }}>

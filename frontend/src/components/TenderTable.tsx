@@ -289,6 +289,11 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                     <span className="badge badge-civil">
                       {t.categoryLabel}
                     </span>
+                    {t.matched_keywords && (
+                      <div style={{ fontSize: '11px', color: '#818cf8', marginTop: '4px', fontWeight: 500, maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={`Matched Keywords: ${t.matched_keywords}`}>
+                        🎯 {t.matched_keywords}
+                      </div>
+                    )}
                   </td>
 
                   {/* Estimated Value */}
