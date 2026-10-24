@@ -28,10 +28,10 @@ class Settings(BaseSettings):
     
     # Security Allowlist
     ALLOWED_SOURCE_HOSTS: List[str] = Field(
-        default=["eproc.rajasthan.gov.in", "eprocure.gov.in"]
+        default=["eproc.rajasthan.gov.in", "eprocure.gov.in", "www.ireps.gov.in", "ireps.gov.in"]
     )
     CORS_ORIGINS: List[str] = Field(
-        default=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"]
+        default=["*", "http://localhost:5173", "http://127.0.0.1:5173", "https://www.ireps.gov.in", "https://ireps.gov.in"]
     )
     
     # Security Credentials & Auth (Zero hardcoded secrets; dynamically generated unless set via environment)

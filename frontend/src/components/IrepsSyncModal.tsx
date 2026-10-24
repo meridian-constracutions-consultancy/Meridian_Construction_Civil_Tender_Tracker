@@ -19,11 +19,8 @@ export const IrepsSyncModal: React.FC<IrepsSyncModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Production API endpoint (or localhost fallback)
-  const isLocal = typeof window !== 'undefined' && window.location.hostname === 'localhost';
-  const apiEndpoint = isLocal 
-    ? 'http://localhost:8008/api/tenders/import' 
-    : 'https://meridian-construction-tender-tracker.onrender.com/api/tenders/import';
+  // Production HTTPS API endpoint (Required because IREPS is HTTPS and blocks insecure HTTP localhost)
+  const apiEndpoint = 'https://meridian-construction-tender-tracker.onrender.com/api/tenders/import';
 
   // Bookmarklet JavaScript Code
   const bookmarkletCode = `javascript:(function(){
@@ -32,10 +29,28 @@ export const IrepsSyncModal: React.FC<IrepsSyncModalProps> = ({
       const tenders = [];
       rows.forEach(tr => {
         const cells = Array.from(tr.querySelectorAll('td')).map(td => td.innerText.trim());
-        if (cells.length >= 3) {
-          const tId = cells.find(c => /^[0-9A-Za-z_\\-\\/]{4,35}$/.test(c)) || cells[0];
-          const title = cells.find(c => c.length > 20) || cells[1];
-          if (title && title.length > 10 && !title.toLowerCase().includes('tender title') && !title.toLowerCase().includes('item description')) {
+        if (cells.length >= 4) {
+          const catNum = cells.find(c => /^[0-9A-Za-z_\\-\\/]{4,35}$/.test(c) && !c.toLowerCase().includes('auction') && !c.toLowerCase().includes('zone'));
+          const descCell = cells.find(c => c.length > 25);
+          let tId = '';
+          let title = '';
+          let org = 'Indian Railways';
+          let dept = '';
+          
+          if (descCell) {
+            title = descCell;
+            tId = catNum || ('IREPS_' + Math.floor(Math.random()*100000));
+            org = cells.find(c => c.toLowerCase().includes('railway')) || 'Indian Railways';
+          } else if (catNum) {
+            tId = catNum;
+            const category = cells[4] || cells[3] || 'Railway Tender / Auction';
+            const unit = cells[1] || cells[0] || 'Division';
+            title = unit + ' - ' + category + ' (' + catNum + ')';
+            dept = unit;
+            org = (cells[0] && cells[0].toLowerCase().includes('railway')) ? cells[0] : 'Indian Railways';
+          }
+
+          if (title && title.length > 8 && !title.toLowerCase().includes('catalogue no') && !title.toLowerCase().includes('tender title')) {
             const valCell = cells.find(c => /(?:₹|rs|inr|\\d{1,3}(?:,\\d{2,3})*(?:\\.\\d{2})?)/i.test(c) && /\\d/.test(c));
             let val = null;
             if (valCell) {
@@ -46,7 +61,8 @@ export const IrepsSyncModal: React.FC<IrepsSyncModalProps> = ({
               tender_id: 'IREPS_' + tId.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 35) + '_' + Math.floor(Math.random()*1000),
               title: title,
               work_description: cells.join(' | '),
-              organization_name: 'Indian Railways / IREPS',
+              organization_name: org,
+              department: dept,
               source_id: 'ireps',
               portal_name: 'Indian Railways E-Procurement System (IREPS)',
               original_url: window.location.href,
