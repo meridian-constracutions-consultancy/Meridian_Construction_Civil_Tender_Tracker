@@ -172,7 +172,7 @@ def list_tender_locations(db: Session = Depends(get_db)):
     """
     curated_cities = [
         "Jaipur", "Delhi", "Sawai Madhopur", "Jodhpur", "Kota", "Ajmer", "Udaipur",
-        "Bhilwara", "Bhiwadi", "Bundi", "Dausa", "Dungarpur", "Sumerpur", "Hindaun",
+        "Manipur", "Imphal", "Bhilwara", "Bhiwadi", "Bundi", "Dausa", "Dungarpur", "Sumerpur", "Hindaun",
         "Chaksu", "Dehradun", "Patna", "Pune", "Bangalore", "Bhubaneswar", "Chandigarh",
         "Gandhinagar", "Guwahati", "Kolkata", "Lucknow", "Mumbai"
     ]

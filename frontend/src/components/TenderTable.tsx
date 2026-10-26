@@ -81,6 +81,8 @@ const ALL_CITIES_CATALOG: CityOption[] = [
   
   // All States & Major Cities
   { name: 'Delhi', state: 'National Capital Region', region: 'other' },
+  { name: 'Manipur', state: 'Northeast India', region: 'other' },
+  { name: 'Imphal', state: 'Manipur', region: 'other' },
   { name: 'Dehradun', state: 'Uttarakhand', region: 'other' },
   { name: 'Patna', state: 'Bihar', region: 'other' },
   { name: 'Bhubaneswar', state: 'Odisha', region: 'other' },
@@ -173,7 +175,23 @@ export const TenderTable: React.FC<TenderTableProps> = ({
 
   // Compute filtered city options based on search query and region tab
   const filteredCities = useMemo(() => {
-    let list = ALL_CITIES_CATALOG;
+    // 1. Start with base catalog
+    const knownNames = new Set(ALL_CITIES_CATALOG.map((c) => c.name.toLowerCase()));
+    const dynamicList = [...ALL_CITIES_CATALOG];
+
+    // 2. Add any locations discovered dynamically from backend tender counts
+    Object.keys(locationCounts).forEach((locName) => {
+      if (!knownNames.has(locName.toLowerCase()) && locName.length > 2) {
+        knownNames.add(locName.toLowerCase());
+        dynamicList.push({
+          name: locName,
+          state: 'Discovered Location',
+          region: 'other'
+        });
+      }
+    });
+
+    let list = dynamicList;
     if (locationTab === 'rajasthan') {
       list = list.filter((c) => c.region === 'rajasthan');
     } else if (locationTab === 'other') {
@@ -324,12 +342,24 @@ export const TenderTable: React.FC<TenderTableProps> = ({
     }));
   }, [tenders, isClosingSoon, isListedToday, getCategoryLabel, formatIndianCurrency, formatDateTime]);
 
+  // Strict chronological sorting: newest published date & time always first (down to the exact minute)
+  const sortedProcessedTenders = useMemo(() => {
+    if (sortBy === 'published_date') {
+      return [...processedTenders].sort((a, b) => {
+        const timeA = a.published_date ? new Date(a.published_date).getTime() : 0;
+        const timeB = b.published_date ? new Date(b.published_date).getTime() : 0;
+        return order === 'desc' ? timeB - timeA : timeA - timeB;
+      });
+    }
+    return processedTenders;
+  }, [processedTenders, sortBy, order]);
+
   // Pagination calculation
-  const totalPages = Math.max(1, Math.ceil(processedTenders.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(sortedProcessedTenders.length / PAGE_SIZE));
   const paginatedTenders = useMemo(() => {
     const startIndex = (currentPage - 1) * PAGE_SIZE;
-    return processedTenders.slice(startIndex, startIndex + PAGE_SIZE);
-  }, [processedTenders, currentPage]);
+    return sortedProcessedTenders.slice(startIndex, startIndex + PAGE_SIZE);
+  }, [sortedProcessedTenders, currentPage]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
