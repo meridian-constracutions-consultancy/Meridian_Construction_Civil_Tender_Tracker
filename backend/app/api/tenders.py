@@ -19,6 +19,7 @@ def list_tenders(
     is_civil_only: bool = Query(True, description="Strictly keyword-matched design & consultancy tenders only"),
     category_id: Optional[str] = Query(None, description="Filter by matched category ID"),
     state: Optional[str] = Query(None),
+    location: Optional[str] = Query(None, description="Filter by city, district, or project location (e.g. Jaipur, Delhi, Sawai Madhopur)"),
     source_id: Optional[str] = Query(None),
     min_value: Optional[float] = Query(None, ge=0),
     max_value: Optional[float] = Query(None, ge=0),
@@ -42,6 +43,19 @@ def list_tenders(
 
     if state:
         conditions.append(Tender.state.ilike(f"%{state}%"))
+
+    if location and location.strip():
+        loc_str = location.strip()
+        loc_term = "%sawai%" if "sawai" in loc_str.lower() else f"%{loc_str}%"
+        conditions.append(
+            or_(
+                Tender.location.ilike(loc_term),
+                Tender.district.ilike(loc_term),
+                Tender.state.ilike(loc_term),
+                Tender.title.ilike(loc_term),
+                Tender.work_description.ilike(loc_term)
+            )
+        )
 
     if source_id:
         conditions.append(Tender.source_id == source_id)
@@ -149,6 +163,41 @@ def list_tenders(
         offset=offset,
         items=items
     )
+
+
+@router.get("/locations")
+def list_tender_locations(db: Session = Depends(get_db)):
+    """
+    Returns prominent cities/locations with matching civil design & consultancy tenders.
+    """
+    curated_cities = [
+        "Jaipur", "Delhi", "Sawai Madhopur", "Jodhpur", "Kota", "Ajmer", "Udaipur",
+        "Bhilwara", "Bhiwadi", "Bundi", "Dausa", "Dungarpur", "Sumerpur", "Hindaun",
+        "Chaksu", "Dehradun", "Patna", "Pune", "Bangalore", "Bhubaneswar", "Chandigarh",
+        "Gandhinagar", "Guwahati", "Kolkata", "Lucknow", "Mumbai"
+    ]
+    results = []
+    for city in curated_cities:
+        term = "%sawai%" if "sawai" in city.lower() else f"%{city}%"
+        cnt = db.scalar(
+            select(func.count(Tender.id))
+            .where(Tender.is_civil_construction == True)
+            .where(
+                or_(
+                    Tender.location.ilike(term),
+                    Tender.district.ilike(term),
+                    Tender.state.ilike(term),
+                    Tender.title.ilike(term),
+                    Tender.work_description.ilike(term)
+                )
+            )
+        ) or 0
+        if cnt > 0:
+            results.append({"name": city, "count": cnt})
+
+    priority = ["Jaipur", "Delhi", "Sawai Madhopur", "Jodhpur", "Kota", "Ajmer", "Udaipur"]
+    results.sort(key=lambda x: (0 if x["name"] in priority else 1, priority.index(x["name"]) if x["name"] in priority else -x["count"]))
+    return {"locations": results}
 
 
 @router.get("/{id_or_tender_id}", response_model=TenderDetail)

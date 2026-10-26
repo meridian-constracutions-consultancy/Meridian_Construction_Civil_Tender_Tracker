@@ -21,6 +21,7 @@ def build_export_query(
     is_civil_only: bool,
     category_id: Optional[str],
     state: Optional[str],
+    location: Optional[str],
     source_id: Optional[str],
     min_value: Optional[float],
     max_value: Optional[float],
@@ -33,6 +34,18 @@ def build_export_query(
         conditions.append(Tender.category_id == category_id)
     if state:
         conditions.append(Tender.state.ilike(f"%{state}%"))
+    if location and location.strip():
+        loc_str = location.strip()
+        loc_term = "%sawai%" if "sawai" in loc_str.lower() else f"%{loc_str}%"
+        conditions.append(
+            or_(
+                Tender.location.ilike(loc_term),
+                Tender.district.ilike(loc_term),
+                Tender.state.ilike(loc_term),
+                Tender.title.ilike(loc_term),
+                Tender.work_description.ilike(loc_term)
+            )
+        )
     if source_id:
         conditions.append(Tender.source_id == source_id)
     if min_value is not None:
@@ -65,6 +78,7 @@ def export_csv(
     is_civil_only: bool = True,
     category_id: Optional[str] = None,
     state: Optional[str] = None,
+    location: Optional[str] = None,
     source_id: Optional[str] = None,
     min_value: Optional[float] = None,
     max_value: Optional[float] = None,
@@ -72,7 +86,7 @@ def export_csv(
     db: Session = Depends(get_db)
 ):
     """Exports filtered tenders as CSV with formula-injection protection."""
-    query = build_export_query(search, is_civil_only, category_id, state, source_id, min_value, max_value, closing_soon)
+    query = build_export_query(search, is_civil_only, category_id, state, location, source_id, min_value, max_value, closing_soon)
     tenders = db.scalars(query).all()
 
     output = io.StringIO()
@@ -118,6 +132,7 @@ def export_excel(
     is_civil_only: bool = True,
     category_id: Optional[str] = None,
     state: Optional[str] = None,
+    location: Optional[str] = None,
     source_id: Optional[str] = None,
     min_value: Optional[float] = None,
     max_value: Optional[float] = None,
@@ -125,7 +140,7 @@ def export_excel(
     db: Session = Depends(get_db)
 ):
     """Exports filtered tenders as a styled Excel (.xlsx) workbook using OpenPyXL."""
-    query = build_export_query(search, is_civil_only, category_id, state, source_id, min_value, max_value, closing_soon)
+    query = build_export_query(search, is_civil_only, category_id, state, location, source_id, min_value, max_value, closing_soon)
     tenders = db.scalars(query).all()
 
     wb = openpyxl.Workbook()

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, FileSpreadsheet, FileText, CheckCircle2, X } from 'lucide-react';
-import { FilterState } from '../types/tender';
-import { getExportUrl } from '../api/client';
+import { Search, FileSpreadsheet, FileText, CheckCircle2, X, MapPin } from 'lucide-react';
+import { FilterState, LocationItem } from '../types/tender';
+import { getExportUrl, fetchLocations } from '../api/client';
 
 interface FilterBarProps {
   filters: FilterState;
@@ -16,12 +16,22 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 }) => {
   // Local state for 0-lag instant typing feedback
   const [localSearch, setLocalSearch] = useState(filters.search || '');
+  const [locations, setLocations] = useState<LocationItem[]>([]);
   const debounceTimerRef = useRef<number | null>(null);
 
   // Sync if external filters change (e.g. Reset)
   useEffect(() => {
     setLocalSearch(filters.search || '');
   }, [filters.search]);
+
+  // Load available locations dynamically from database
+  useEffect(() => {
+    fetchLocations().then((locs) => {
+      if (locs && locs.length > 0) {
+        setLocations(locs);
+      }
+    });
+  }, []);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -53,6 +63,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     filters.search ||
     filters.category_id ||
     filters.state ||
+    filters.location ||
     filters.value_range ||
     filters.closing_soon ||
     filters.listed_today ||
@@ -85,6 +96,62 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               aria-label="Clear search"
             >
               <X size={14} />
+            </button>
+          )}
+        </div>
+
+        {/* Location Dropdown Button / Select */}
+        <div className="location-select-wrapper">
+          <MapPin size={14} className="location-icon" />
+          <select
+            className={`select-input select-location ${filters.location ? 'active-location-select' : ''}`}
+            value={filters.location || ''}
+            onChange={(e) => onFilterChange({ location: e.target.value })}
+            aria-label="Filter by location"
+          >
+            <option value="">📍 All Locations / Cities</option>
+            {locations.length > 0 ? (
+              <>
+                <optgroup label="⭐ Top Project Locations">
+                  {locations.slice(0, 7).map((loc) => (
+                    <option key={loc.name} value={loc.name}>
+                      {loc.name} ({loc.count})
+                    </option>
+                  ))}
+                </optgroup>
+                {locations.length > 7 && (
+                  <optgroup label="🏛️ Other Available Locations">
+                    {locations.slice(7).map((loc) => (
+                      <option key={loc.name} value={loc.name}>
+                        {loc.name} ({loc.count})
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+              </>
+            ) : (
+              <>
+                <optgroup label="⭐ Popular Locations">
+                  <option value="Jaipur">Jaipur (5)</option>
+                  <option value="Delhi">Delhi (6)</option>
+                  <option value="Sawai Madhopur">Sawai Madhopur (1)</option>
+                  <option value="Jodhpur">Jodhpur (2)</option>
+                  <option value="Kota">Kota (1)</option>
+                  <option value="Ajmer">Ajmer (2)</option>
+                  <option value="Udaipur">Udaipur (1)</option>
+                </optgroup>
+              </>
+            )}
+          </select>
+          {filters.location && (
+            <button
+              type="button"
+              className="location-clear-btn"
+              onClick={() => onFilterChange({ location: '' })}
+              title="Clear selected location"
+              aria-label="Clear selected location"
+            >
+              <X size={12} />
             </button>
           )}
         </div>
@@ -178,6 +245,41 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           >
             <span>📅 Under 15 Days</span>
           </button>
+
+          {/* Quick Location Chips */}
+          <button
+            className={`toggle-filter-chip ${filters.location === 'Jaipur' ? 'active' : ''}`}
+            onClick={() => onFilterChange({ location: filters.location === 'Jaipur' ? '' : 'Jaipur' })}
+            title="Show tenders in Jaipur"
+          >
+            <span>📍 Jaipur</span>
+          </button>
+
+          <button
+            className={`toggle-filter-chip ${filters.location === 'Delhi' ? 'active' : ''}`}
+            onClick={() => onFilterChange({ location: filters.location === 'Delhi' ? '' : 'Delhi' })}
+            title="Show tenders in Delhi"
+          >
+            <span>📍 Delhi</span>
+          </button>
+
+          <button
+            className={`toggle-filter-chip ${filters.location === 'Sawai Madhopur' ? 'active' : ''}`}
+            onClick={() => onFilterChange({ location: filters.location === 'Sawai Madhopur' ? '' : 'Sawai Madhopur' })}
+            title="Show tenders in Sawai Madhopur"
+          >
+            <span>📍 Sawai Madhopur</span>
+          </button>
+
+          {filters.location && !['Jaipur', 'Delhi', 'Sawai Madhopur'].includes(filters.location) && (
+            <button
+              className="toggle-filter-chip active"
+              onClick={() => onFilterChange({ location: '' })}
+              title="Click to clear location filter"
+            >
+              <span>📍 {filters.location} ✕</span>
+            </button>
+          )}
 
 
           <button

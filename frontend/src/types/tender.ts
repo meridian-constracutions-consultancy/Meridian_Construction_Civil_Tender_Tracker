@@ -107,11 +107,17 @@ export interface SourceRead {
   last_discovered_identifier?: string;
 }
 
+export interface LocationItem {
+  name: string;
+  count: number;
+}
+
 export interface FilterState {
   search: string;
   is_civil_only: boolean;
   category_id: string;
   state: string;
+  location?: string;
   source_id: string;
   value_range: string;
   closing_soon: boolean;

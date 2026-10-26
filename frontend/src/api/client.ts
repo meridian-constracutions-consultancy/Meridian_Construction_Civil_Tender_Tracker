@@ -1,4 +1,4 @@
-import { TenderListResponse, TenderDetail, SourceRead, FilterState, KeywordsConfig, KeywordsUpdateRequest } from '../types/tender';
+import { TenderListResponse, TenderDetail, SourceRead, FilterState, KeywordsConfig, KeywordsUpdateRequest, LocationItem } from '../types/tender';
 
 const BASE_URL = '/api';
 
@@ -16,6 +16,7 @@ export async function fetchTenders(
   if (filters.is_civil_only !== undefined) params.set('is_civil_only', filters.is_civil_only.toString());
   if (filters.category_id) params.set('category_id', filters.category_id);
   if (filters.state) params.set('state', filters.state);
+  if (filters.location) params.set('location', filters.location);
   if (filters.source_id) params.set('source_id', filters.source_id);
   if (filters.closing_soon) params.set('closing_soon', 'true');
   if (filters.listed_today) params.set('listed_today', 'true');
@@ -111,11 +112,26 @@ export function getExportUrl(type: 'csv' | 'excel', filters: Partial<FilterState
   if (filters.is_civil_only !== undefined) params.set('is_civil_only', filters.is_civil_only.toString());
   if (filters.category_id) params.set('category_id', filters.category_id);
   if (filters.state) params.set('state', filters.state);
+  if (filters.location) params.set('location', filters.location);
   if (filters.source_id) params.set('source_id', filters.source_id);
   if (filters.closing_soon) params.set('closing_soon', 'true');
   if (filters.listed_today) params.set('listed_today', 'true');
   if (filters.under_15_days) params.set('under_15_days', 'true');
   return `${BASE_URL}/export/${type}?${params.toString()}`;
+}
+
+export async function fetchLocations(): Promise<LocationItem[]> {
+  try {
+    const response = await fetch(`${BASE_URL}/tenders/locations?_t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+    });
+    if (!response.ok) return [];
+    const data = await response.json();
+    return data.locations || [];
+  } catch {
+    return [];
+  }
 }
 
 export async function fetchKeywords(): Promise<KeywordsConfig> {
