@@ -1,6 +1,7 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { ExternalLink, Eye, Building, MapPin, Check, LayoutList, LayoutGrid, Calendar, AlertTriangle } from 'lucide-react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { ExternalLink, Eye, Building, MapPin, Check, LayoutList, LayoutGrid, Calendar, AlertTriangle, ChevronDown, Search, X } from 'lucide-react';
 import { TenderListItem } from '../types/tender';
+import { fetchLocations } from '../api/client';
 
 interface TenderTableProps {
   tenders: TenderListItem[];
@@ -10,7 +11,106 @@ interface TenderTableProps {
   order: 'asc' | 'desc';
   onSortChange: (column: string) => void;
   isCivilOnly?: boolean;
+  selectedLocation?: string;
+  onLocationChange?: (location: string) => void;
 }
+
+interface CityOption {
+  name: string;
+  state?: string;
+  region: 'rajasthan' | 'other';
+}
+
+const ALL_CITIES_CATALOG: CityOption[] = [
+  // Rajasthan Major Cities & Districts (All 50 Districts / Prominent Locations)
+  { name: 'Jaipur', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Sawai Madhopur', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Jodhpur', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Kota', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Ajmer', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Udaipur', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Bhilwara', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Bhiwadi', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Bundi', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Dausa', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Dungarpur', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Sumerpur', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Hindaun', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Chaksu', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Alwar', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Bikaner', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Bharatpur', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Sikar', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Pali', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Sri Ganganagar', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Barmer', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Jhunjhunu', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Churu', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Nagaur', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Hanumangarh', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Chittorgarh', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Jalore', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Sirohi', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Tonk', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Banswara', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Rajsamand', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Baran', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Dholpur', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Jhalawar', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Pratapgarh', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Karauli', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Balotra', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Beawar', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Deeg', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Didwana', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Dudu', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Gangapur City', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Kekri', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Kotputli', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Khairthal', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Neem Ka Thana', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Phalodi', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Salumbar', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Sanchore', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Shahpura', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Anupgarh', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Kishangarh', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Makrana', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Sujangarh', state: 'Rajasthan', region: 'rajasthan' },
+  { name: 'Abu Road', state: 'Rajasthan', region: 'rajasthan' },
+  
+  // All States & Major Cities
+  { name: 'Delhi', state: 'National Capital Region', region: 'other' },
+  { name: 'Dehradun', state: 'Uttarakhand', region: 'other' },
+  { name: 'Patna', state: 'Bihar', region: 'other' },
+  { name: 'Bhubaneswar', state: 'Odisha', region: 'other' },
+  { name: 'Mumbai', state: 'Maharashtra', region: 'other' },
+  { name: 'Chandigarh', state: 'Punjab / Haryana', region: 'other' },
+  { name: 'Kolkata', state: 'West Bengal', region: 'other' },
+  { name: 'Lucknow', state: 'Uttar Pradesh', region: 'other' },
+  { name: 'Pune', state: 'Maharashtra', region: 'other' },
+  { name: 'Bangalore', state: 'Karnataka', region: 'other' },
+  { name: 'Gandhinagar', state: 'Gujarat', region: 'other' },
+  { name: 'Guwahati', state: 'Assam', region: 'other' },
+  { name: 'Ahmedabad', state: 'Gujarat', region: 'other' },
+  { name: 'Hyderabad', state: 'Telangana', region: 'other' },
+  { name: 'Chennai', state: 'Tamil Nadu', region: 'other' },
+  { name: 'Bhopal', state: 'Madhya Pradesh', region: 'other' },
+  { name: 'Indore', state: 'Madhya Pradesh', region: 'other' },
+  { name: 'Raipur', state: 'Chhattisgarh', region: 'other' },
+  { name: 'Ranchi', state: 'Jharkhand', region: 'other' },
+  { name: 'Noida', state: 'Uttar Pradesh', region: 'other' },
+  { name: 'Kanpur', state: 'Uttar Pradesh', region: 'other' },
+  { name: 'Varanasi', state: 'Uttar Pradesh', region: 'other' },
+  { name: 'Shimla', state: 'Himachal Pradesh', region: 'other' },
+  { name: 'Jammu', state: 'Jammu & Kashmir', region: 'other' },
+  { name: 'Srinagar', state: 'Jammu & Kashmir', region: 'other' },
+  { name: 'Goa', state: 'Goa', region: 'other' },
+  { name: 'Kochi', state: 'Kerala', region: 'other' },
+  { name: 'Visakhapatnam', state: 'Andhra Pradesh', region: 'other' },
+  { name: 'Surat', state: 'Gujarat', region: 'other' },
+  { name: 'Vadodara', state: 'Gujarat', region: 'other' },
+];
 
 const PAGE_SIZE = 10;
 
@@ -22,16 +122,86 @@ export const TenderTable: React.FC<TenderTableProps> = ({
   order,
   onSortChange,
   isCivilOnly = true,
+  selectedLocation = '',
+  onLocationChange,
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   // View mode: 'auto' (cards on mobile, table on desktop), or explicit 'table' / 'cards'
   const [viewMode, setViewMode] = useState<'auto' | 'table' | 'cards'>('auto');
   const [currentPage, setCurrentPage] = useState<number>(1);
 
+  // Location Column Filter Dropdown State
+  const [isLocationMenuOpen, setIsLocationMenuOpen] = useState<boolean>(false);
+  const [locationSearch, setLocationSearch] = useState<string>('');
+  const [locationTab, setLocationTab] = useState<'all' | 'rajasthan' | 'other'>('all');
+  const [locationCounts, setLocationCounts] = useState<Record<string, number>>({});
+  const locationMenuRef = useRef<HTMLTableCellElement | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Fetch live location tender counts from backend
+  useEffect(() => {
+    fetchLocations().then((locs) => {
+      const counts: Record<string, number> = {};
+      locs.forEach((l) => {
+        counts[l.name] = l.count;
+      });
+      setLocationCounts(counts);
+    });
+  }, []);
+
+  // Handle click outside to close location menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (locationMenuRef.current && !locationMenuRef.current.contains(event.target as Node)) {
+        setIsLocationMenuOpen(false);
+      }
+    };
+    if (isLocationMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isLocationMenuOpen]);
+
+  // Auto-focus search input when dropdown opens
+  useEffect(() => {
+    if (isLocationMenuOpen) {
+      setTimeout(() => searchInputRef.current?.focus(), 50);
+    }
+  }, [isLocationMenuOpen]);
+
+  // Compute filtered city options based on search query and region tab
+  const filteredCities = useMemo(() => {
+    let list = ALL_CITIES_CATALOG;
+    if (locationTab === 'rajasthan') {
+      list = list.filter((c) => c.region === 'rajasthan');
+    } else if (locationTab === 'other') {
+      list = list.filter((c) => c.region === 'other');
+    }
+
+    if (locationSearch.trim()) {
+      const q = locationSearch.toLowerCase().trim();
+      list = list.filter(
+        (c) =>
+          c.name.toLowerCase().includes(q) ||
+          (c.state && c.state.toLowerCase().includes(q))
+      );
+    }
+
+    // Sort by count descending, then alphabetically
+    return [...list].sort((a, b) => {
+      const countA = locationCounts[a.name] || 0;
+      const countB = locationCounts[b.name] || 0;
+      if (countA !== countB) return countB - countA;
+      return a.name.localeCompare(b.name);
+    });
+  }, [locationTab, locationSearch, locationCounts]);
+
   // Automatically reset to page 1 when data or sort changes
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [tenders, sortBy, order]);
+  }, [tenders, sortBy, order, selectedLocation]);
 
   const handleCopyAndOpenPortal = useCallback((e: React.MouseEvent, t: TenderListItem) => {
     if (navigator.clipboard) {
@@ -220,7 +390,163 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                 Tender ID {sortBy === 'tender_id' && (order === 'asc' ? '↑' : '↓')}
               </th>
               <th>Work Details & Authority</th>
-              <th>Location</th>
+              <th className={`location-header-th ${selectedLocation ? 'is-filtered' : ''}`} ref={locationMenuRef}>
+                <div 
+                  className="location-header-btn" 
+                  onClick={() => setIsLocationMenuOpen(!isLocationMenuOpen)}
+                  title="Click to filter by Rajasthan or All Indian Cities/States"
+                >
+                  <div className="location-header-text">
+                    <MapPin size={12} className="loc-pin-icon" />
+                    <span>LOCATION</span>
+                  </div>
+                  {selectedLocation ? (
+                    <span 
+                      className="location-pill-badge"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onLocationChange?.('');
+                      }}
+                      title={`Active filter: ${selectedLocation}. Click to clear.`}
+                    >
+                      <span className="loc-pill-name">{selectedLocation}</span>
+                      <X size={11} className="loc-pill-x" />
+                    </span>
+                  ) : (
+                    <ChevronDown size={12} className={`loc-chevron ${isLocationMenuOpen ? 'open' : ''}`} />
+                  )}
+                </div>
+
+                {isLocationMenuOpen && (
+                  <div className="location-dropdown-panel" onClick={(e) => e.stopPropagation()}>
+                    {/* Header bar */}
+                    <div className="loc-panel-header">
+                      <div className="loc-panel-title">Filter by City / State</div>
+                      {selectedLocation && (
+                        <button 
+                          type="button" 
+                          className="loc-panel-clear-btn" 
+                          onClick={() => {
+                            onLocationChange?.('');
+                            setIsLocationMenuOpen(false);
+                          }}
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Search box */}
+                    <div className="loc-panel-search">
+                      <Search size={13} className="loc-panel-search-icon" />
+                      <input
+                        ref={searchInputRef}
+                        type="text"
+                        className="loc-panel-search-input"
+                        placeholder="Search city/state (e.g. Jaipur, Delhi, Sawai)..."
+                        value={locationSearch}
+                        onChange={(e) => setLocationSearch(e.target.value)}
+                      />
+                      {locationSearch && (
+                        <button 
+                          type="button" 
+                          className="loc-panel-search-clear" 
+                          onClick={() => setLocationSearch('')}
+                        >
+                          <X size={12} />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Region Tabs */}
+                    <div className="loc-panel-tabs">
+                      <button 
+                        type="button"
+                        className={`loc-tab-btn ${locationTab === 'all' ? 'active' : ''}`}
+                        onClick={() => setLocationTab('all')}
+                      >
+                        All
+                      </button>
+                      <button 
+                        type="button"
+                        className={`loc-tab-btn ${locationTab === 'rajasthan' ? 'active' : ''}`}
+                        onClick={() => setLocationTab('rajasthan')}
+                      >
+                        Rajasthan (50+)
+                      </button>
+                      <button 
+                        type="button"
+                        className={`loc-tab-btn ${locationTab === 'other' ? 'active' : ''}`}
+                        onClick={() => setLocationTab('other')}
+                      >
+                        Other States / Metros
+                      </button>
+                    </div>
+
+                    {/* Items List */}
+                    <div className="loc-panel-list">
+                      {/* Show All Reset Item */}
+                      <div 
+                        className={`loc-list-item ${!selectedLocation ? 'selected' : ''}`}
+                        onClick={() => {
+                          onLocationChange?.('');
+                          setIsLocationMenuOpen(false);
+                        }}
+                      >
+                        <span className="loc-list-name">📍 All Locations (Show All)</span>
+                        {!selectedLocation && <Check size={13} className="loc-check-icon" />}
+                      </div>
+
+                      {/* If user typed a search term not in list */}
+                      {locationSearch.trim() && !filteredCities.some(c => c.name.toLowerCase() === locationSearch.trim().toLowerCase()) && (
+                        <div 
+                          className="loc-list-item custom-search-item"
+                          onClick={() => {
+                            onLocationChange?.(locationSearch.trim());
+                            setIsLocationMenuOpen(false);
+                          }}
+                        >
+                          <span className="loc-list-name">🔍 Filter tenders matching &quot;<b>{locationSearch.trim()}</b>&quot;</span>
+                        </div>
+                      )}
+
+                      {filteredCities.map((city) => {
+                        const isSelected = selectedLocation?.toLowerCase() === city.name.toLowerCase();
+                        const count = locationCounts[city.name] || 0;
+                        return (
+                          <div 
+                            key={city.name}
+                            className={`loc-list-item ${isSelected ? 'selected' : ''} ${count > 0 ? 'has-tenders' : ''}`}
+                            onClick={() => {
+                              onLocationChange?.(city.name);
+                              setIsLocationMenuOpen(false);
+                            }}
+                          >
+                            <div className="loc-item-info">
+                              <span className="loc-list-name">{city.name}</span>
+                              {city.state && <span className="loc-list-state">({city.state})</span>}
+                            </div>
+                            <div className="loc-item-meta">
+                              {count > 0 && (
+                                <span className="loc-tender-count-badge">
+                                  {count} {count === 1 ? 'tender' : 'tenders'}
+                                </span>
+                              )}
+                              {isSelected && <Check size={13} className="loc-check-icon" />}
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {filteredCities.length === 0 && (
+                        <div className="loc-empty-hint">
+                          No pre-catalogued city found. Click above to search &quot;{locationSearch}&quot;.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </th>
               <th>Category</th>
               <th onClick={() => onSortChange('estimated_value')} style={{ textAlign: 'right' }}>
                 Value (INR) {sortBy === 'estimated_value' && (order === 'asc' ? '↑' : '↓')}

@@ -294,6 +294,8 @@ export const App: React.FC = () => {
         order={filters.order}
         onSortChange={handleSortChange}
         isCivilOnly={filters.is_civil_only}
+        selectedLocation={filters.location}
+        onLocationChange={(loc) => handleFilterChange({ location: loc })}
       />
 
       {/* Source Monitoring & Health Status */}
