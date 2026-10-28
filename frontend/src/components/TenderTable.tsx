@@ -17,101 +17,159 @@ interface TenderTableProps {
 
 interface CityOption {
   name: string;
-  state?: string;
-  region: 'rajasthan' | 'other';
+  state: string;
+  region: 'primary' | 'other';
 }
 
 const ALL_CITIES_CATALOG: CityOption[] = [
-  // Rajasthan Major Cities & Districts (All 50 Districts / Prominent Locations)
-  { name: 'Jaipur', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Sawai Madhopur', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Jodhpur', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Kota', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Ajmer', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Udaipur', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Bhilwara', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Bhiwadi', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Bundi', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Dausa', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Dungarpur', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Sumerpur', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Hindaun', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Chaksu', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Alwar', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Bikaner', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Bharatpur', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Sikar', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Pali', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Sri Ganganagar', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Barmer', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Jhunjhunu', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Churu', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Nagaur', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Hanumangarh', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Chittorgarh', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Jalore', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Sirohi', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Tonk', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Banswara', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Rajsamand', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Baran', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Dholpur', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Jhalawar', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Pratapgarh', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Karauli', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Balotra', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Beawar', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Deeg', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Didwana', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Dudu', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Gangapur City', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Kekri', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Kotputli', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Khairthal', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Neem Ka Thana', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Phalodi', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Salumbar', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Sanchore', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Shahpura', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Anupgarh', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Kishangarh', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Makrana', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Sujangarh', state: 'Rajasthan', region: 'rajasthan' },
-  { name: 'Abu Road', state: 'Rajasthan', region: 'rajasthan' },
-  
-  // All States & Major Cities
-  { name: 'Delhi', state: 'National Capital Region', region: 'other' },
-  { name: 'Manipur', state: 'Northeast India', region: 'other' },
-  { name: 'Imphal', state: 'Manipur', region: 'other' },
-  { name: 'Dehradun', state: 'Uttarakhand', region: 'other' },
-  { name: 'Patna', state: 'Bihar', region: 'other' },
-  { name: 'Bhubaneswar', state: 'Odisha', region: 'other' },
-  { name: 'Mumbai', state: 'Maharashtra', region: 'other' },
-  { name: 'Chandigarh', state: 'Punjab / Haryana', region: 'other' },
-  { name: 'Kolkata', state: 'West Bengal', region: 'other' },
-  { name: 'Lucknow', state: 'Uttar Pradesh', region: 'other' },
-  { name: 'Pune', state: 'Maharashtra', region: 'other' },
-  { name: 'Bangalore', state: 'Karnataka', region: 'other' },
-  { name: 'Gandhinagar', state: 'Gujarat', region: 'other' },
-  { name: 'Guwahati', state: 'Assam', region: 'other' },
-  { name: 'Ahmedabad', state: 'Gujarat', region: 'other' },
-  { name: 'Hyderabad', state: 'Telangana', region: 'other' },
-  { name: 'Chennai', state: 'Tamil Nadu', region: 'other' },
-  { name: 'Bhopal', state: 'Madhya Pradesh', region: 'other' },
-  { name: 'Indore', state: 'Madhya Pradesh', region: 'other' },
-  { name: 'Raipur', state: 'Chhattisgarh', region: 'other' },
-  { name: 'Ranchi', state: 'Jharkhand', region: 'other' },
-  { name: 'Noida', state: 'Uttar Pradesh', region: 'other' },
-  { name: 'Kanpur', state: 'Uttar Pradesh', region: 'other' },
-  { name: 'Varanasi', state: 'Uttar Pradesh', region: 'other' },
-  { name: 'Shimla', state: 'Himachal Pradesh', region: 'other' },
-  { name: 'Jammu', state: 'Jammu & Kashmir', region: 'other' },
-  { name: 'Srinagar', state: 'Jammu & Kashmir', region: 'other' },
-  { name: 'Goa', state: 'Goa', region: 'other' },
-  { name: 'Kochi', state: 'Kerala', region: 'other' },
-  { name: 'Visakhapatnam', state: 'Andhra Pradesh', region: 'other' },
-  { name: 'Surat', state: 'Gujarat', region: 'other' },
-  { name: 'Vadodara', state: 'Gujarat', region: 'other' },
+  // 1. RAJASTHAN (Primary State - All Major Cities & Districts)
+  { name: 'Jaipur', state: 'Rajasthan', region: 'primary' },
+  { name: 'Sawai Madhopur', state: 'Rajasthan', region: 'primary' },
+  { name: 'Jodhpur', state: 'Rajasthan', region: 'primary' },
+  { name: 'Kota', state: 'Rajasthan', region: 'primary' },
+  { name: 'Ajmer', state: 'Rajasthan', region: 'primary' },
+  { name: 'Udaipur', state: 'Rajasthan', region: 'primary' },
+  { name: 'Bhilwara', state: 'Rajasthan', region: 'primary' },
+  { name: 'Bhiwadi', state: 'Rajasthan', region: 'primary' },
+  { name: 'Bundi', state: 'Rajasthan', region: 'primary' },
+  { name: 'Dausa', state: 'Rajasthan', region: 'primary' },
+  { name: 'Dungarpur', state: 'Rajasthan', region: 'primary' },
+  { name: 'Sumerpur', state: 'Rajasthan', region: 'primary' },
+  { name: 'Hindaun', state: 'Rajasthan', region: 'primary' },
+  { name: 'Chaksu', state: 'Rajasthan', region: 'primary' },
+  { name: 'Alwar', state: 'Rajasthan', region: 'primary' },
+  { name: 'Bikaner', state: 'Rajasthan', region: 'primary' },
+  { name: 'Bharatpur', state: 'Rajasthan', region: 'primary' },
+  { name: 'Sikar', state: 'Rajasthan', region: 'primary' },
+  { name: 'Pali', state: 'Rajasthan', region: 'primary' },
+  { name: 'Sri Ganganagar', state: 'Rajasthan', region: 'primary' },
+  { name: 'Barmer', state: 'Rajasthan', region: 'primary' },
+  { name: 'Jhunjhunu', state: 'Rajasthan', region: 'primary' },
+  { name: 'Churu', state: 'Rajasthan', region: 'primary' },
+  { name: 'Nagaur', state: 'Rajasthan', region: 'primary' },
+  { name: 'Hanumangarh', state: 'Rajasthan', region: 'primary' },
+  { name: 'Chittorgarh', state: 'Rajasthan', region: 'primary' },
+  { name: 'Jalore', state: 'Rajasthan', region: 'primary' },
+  { name: 'Sirohi', state: 'Rajasthan', region: 'primary' },
+  { name: 'Tonk', state: 'Rajasthan', region: 'primary' },
+  { name: 'Banswara', state: 'Rajasthan', region: 'primary' },
+  { name: 'Rajsamand', state: 'Rajasthan', region: 'primary' },
+  { name: 'Baran', state: 'Rajasthan', region: 'primary' },
+  { name: 'Dholpur', state: 'Rajasthan', region: 'primary' },
+  { name: 'Jhalawar', state: 'Rajasthan', region: 'primary' },
+  { name: 'Pratapgarh', state: 'Rajasthan', region: 'primary' },
+  { name: 'Karauli', state: 'Rajasthan', region: 'primary' },
+  { name: 'Balotra', state: 'Rajasthan', region: 'primary' },
+  { name: 'Beawar', state: 'Rajasthan', region: 'primary' },
+  { name: 'Deeg', state: 'Rajasthan', region: 'primary' },
+  { name: 'Didwana', state: 'Rajasthan', region: 'primary' },
+  { name: 'Dudu', state: 'Rajasthan', region: 'primary' },
+  { name: 'Gangapur City', state: 'Rajasthan', region: 'primary' },
+  { name: 'Kekri', state: 'Rajasthan', region: 'primary' },
+  { name: 'Kotputli', state: 'Rajasthan', region: 'primary' },
+  { name: 'Khairthal', state: 'Rajasthan', region: 'primary' },
+  { name: 'Neem Ka Thana', state: 'Rajasthan', region: 'primary' },
+  { name: 'Phalodi', state: 'Rajasthan', region: 'primary' },
+  { name: 'Salumbar', state: 'Rajasthan', region: 'primary' },
+  { name: 'Sanchore', state: 'Rajasthan', region: 'primary' },
+  { name: 'Shahpura', state: 'Rajasthan', region: 'primary' },
+  { name: 'Anupgarh', state: 'Rajasthan', region: 'primary' },
+  { name: 'Kishangarh', state: 'Rajasthan', region: 'primary' },
+  { name: 'Makrana', state: 'Rajasthan', region: 'primary' },
+  { name: 'Sujangarh', state: 'Rajasthan', region: 'primary' },
+  { name: 'Abu Road', state: 'Rajasthan', region: 'primary' },
+
+  // 2. DELHI / NCR (Primary Region)
+  { name: 'Delhi', state: 'Delhi/NCR', region: 'primary' },
+  { name: 'New Delhi', state: 'Delhi/NCR', region: 'primary' },
+  { name: 'Noida', state: 'Delhi/NCR', region: 'primary' },
+  { name: 'Greater Noida', state: 'Delhi/NCR', region: 'primary' },
+  { name: 'Ghaziabad', state: 'Delhi/NCR', region: 'primary' },
+  { name: 'Gurugram', state: 'Delhi/NCR', region: 'primary' },
+  { name: 'Faridabad', state: 'Delhi/NCR', region: 'primary' },
+  { name: 'Sonipat', state: 'Delhi/NCR', region: 'primary' },
+  { name: 'Meerut', state: 'Delhi/NCR', region: 'primary' },
+
+  // 3. UTTAR PRADESH (Primary Hindi State)
+  { name: 'Lucknow', state: 'Uttar Pradesh', region: 'primary' },
+  { name: 'Kanpur', state: 'Uttar Pradesh', region: 'primary' },
+  { name: 'Varanasi', state: 'Uttar Pradesh', region: 'primary' },
+  { name: 'Agra', state: 'Uttar Pradesh', region: 'primary' },
+  { name: 'Prayagraj', state: 'Uttar Pradesh', region: 'primary' },
+  { name: 'Bareilly', state: 'Uttar Pradesh', region: 'primary' },
+  { name: 'Aligarh', state: 'Uttar Pradesh', region: 'primary' },
+  { name: 'Moradabad', state: 'Uttar Pradesh', region: 'primary' },
+  { name: 'Saharanpur', state: 'Uttar Pradesh', region: 'primary' },
+  { name: 'Gorakhpur', state: 'Uttar Pradesh', region: 'primary' },
+  { name: 'Jhansi', state: 'Uttar Pradesh', region: 'primary' },
+  { name: 'Mathura', state: 'Uttar Pradesh', region: 'primary' },
+  { name: 'Ayodhya', state: 'Uttar Pradesh', region: 'primary' },
+  { name: 'Muzaffarnagar', state: 'Uttar Pradesh', region: 'primary' },
+  { name: 'Firozabad', state: 'Uttar Pradesh', region: 'primary' },
+  { name: 'Mirzapur', state: 'Uttar Pradesh', region: 'primary' },
+  { name: 'Rampur', state: 'Uttar Pradesh', region: 'primary' },
+
+  // 4. MADHYA PRADESH (Primary Hindi State)
+  { name: 'Bhopal', state: 'Madhya Pradesh', region: 'primary' },
+  { name: 'Indore', state: 'Madhya Pradesh', region: 'primary' },
+  { name: 'Gwalior', state: 'Madhya Pradesh', region: 'primary' },
+  { name: 'Jabalpur', state: 'Madhya Pradesh', region: 'primary' },
+  { name: 'Ujjain', state: 'Madhya Pradesh', region: 'primary' },
+  { name: 'Sagar', state: 'Madhya Pradesh', region: 'primary' },
+  { name: 'Dewas', state: 'Madhya Pradesh', region: 'primary' },
+  { name: 'Satna', state: 'Madhya Pradesh', region: 'primary' },
+  { name: 'Ratlam', state: 'Madhya Pradesh', region: 'primary' },
+  { name: 'Rewa', state: 'Madhya Pradesh', region: 'primary' },
+  { name: 'Singrauli', state: 'Madhya Pradesh', region: 'primary' },
+  { name: 'Katni', state: 'Madhya Pradesh', region: 'primary' },
+  { name: 'Shivpuri', state: 'Madhya Pradesh', region: 'primary' },
+  { name: 'Chhindwara', state: 'Madhya Pradesh', region: 'primary' },
+  { name: 'Vidisha', state: 'Madhya Pradesh', region: 'primary' },
+
+  // 5. HARYANA (Primary Hindi State)
+  { name: 'Chandigarh', state: 'Haryana', region: 'primary' },
+  { name: 'Ambala', state: 'Haryana', region: 'primary' },
+  { name: 'Panipat', state: 'Haryana', region: 'primary' },
+  { name: 'Karnal', state: 'Haryana', region: 'primary' },
+  { name: 'Rohtak', state: 'Haryana', region: 'primary' },
+  { name: 'Hisar', state: 'Haryana', region: 'primary' },
+  { name: 'Yamunanagar', state: 'Haryana', region: 'primary' },
+  { name: 'Panchkula', state: 'Haryana', region: 'primary' },
+  { name: 'Kurukshetra', state: 'Haryana', region: 'primary' },
+  { name: 'Bahadurgarh', state: 'Haryana', region: 'primary' },
+  { name: 'Rewari', state: 'Haryana', region: 'primary' },
+  { name: 'Jind', state: 'Haryana', region: 'primary' },
+  { name: 'Sirsa', state: 'Haryana', region: 'primary' },
+
+  // 6. BIHAR (Primary Hindi State)
+  { name: 'Patna', state: 'Bihar', region: 'primary' },
+  { name: 'Gaya', state: 'Bihar', region: 'primary' },
+  { name: 'Bhagalpur', state: 'Bihar', region: 'primary' },
+  { name: 'Muzaffarpur', state: 'Bihar', region: 'primary' },
+  { name: 'Purnia', state: 'Bihar', region: 'primary' },
+  { name: 'Darbhanga', state: 'Bihar', region: 'primary' },
+  { name: 'Bihar Sharif', state: 'Bihar', region: 'primary' },
+  { name: 'Arrah', state: 'Bihar', region: 'primary' },
+  { name: 'Begusarai', state: 'Bihar', region: 'primary' },
+  { name: 'Katihar', state: 'Bihar', region: 'primary' },
+  { name: 'Munger', state: 'Bihar', region: 'primary' },
+  { name: 'Chhapra', state: 'Bihar', region: 'primary' },
+  { name: 'Samastipur', state: 'Bihar', region: 'primary' },
+
+  // 7. UTTARAKHAND (Primary Hindi State)
+  { name: 'Dehradun', state: 'Uttarakhand', region: 'primary' },
+  { name: 'Haridwar', state: 'Uttarakhand', region: 'primary' },
+  { name: 'Roorkee', state: 'Uttarakhand', region: 'primary' },
+  { name: 'Haldwani', state: 'Uttarakhand', region: 'primary' },
+  { name: 'Rishikesh', state: 'Uttarakhand', region: 'primary' },
+  { name: 'Rudrapur', state: 'Uttarakhand', region: 'primary' },
+  { name: 'Kashipur', state: 'Uttarakhand', region: 'primary' },
+  { name: 'Nainital', state: 'Uttarakhand', region: 'primary' },
+  { name: 'Almora', state: 'Uttarakhand', region: 'primary' },
+
+  // 8. OTHER (Out of the 7 States - shows in 'Other' and selectable)
+  { name: 'Manipur', state: 'Other', region: 'other' },
+  { name: 'Imphal', state: 'Other', region: 'other' },
 ];
 
 const PAGE_SIZE = 10;
@@ -135,7 +193,7 @@ export const TenderTable: React.FC<TenderTableProps> = ({
   // Location Column Filter Dropdown State
   const [isLocationMenuOpen, setIsLocationMenuOpen] = useState<boolean>(false);
   const [locationSearch, setLocationSearch] = useState<string>('');
-  const [locationTab, setLocationTab] = useState<'all' | 'rajasthan' | 'other'>('all');
+  const [locationTab, setLocationTab] = useState<'all' | 'primary' | 'other'>('all');
   const [locationCounts, setLocationCounts] = useState<Record<string, number>>({});
   const locationMenuRef = useRef<HTMLTableCellElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
@@ -175,25 +233,47 @@ export const TenderTable: React.FC<TenderTableProps> = ({
 
   // Compute filtered city options based on search query and region tab
   const filteredCities = useMemo(() => {
-    // 1. Start with base catalog
+    // 1. Start with base catalog (7 Hindi States)
     const knownNames = new Set(ALL_CITIES_CATALOG.map((c) => c.name.toLowerCase()));
     const dynamicList = [...ALL_CITIES_CATALOG];
 
-    // 2. Add any locations discovered dynamically from backend tender counts
+    // 2. Auto-discover from backend count API
     Object.keys(locationCounts).forEach((locName) => {
       if (!knownNames.has(locName.toLowerCase()) && locName.length > 2) {
         knownNames.add(locName.toLowerCase());
         dynamicList.push({
           name: locName,
-          state: 'Discovered Location',
+          state: 'Other',
           region: 'other'
         });
       }
     });
 
+    // 3. AUTO-DETECT: Inspect all active tenders in table
+    // If any tender has a city/location not in the list (e.g. Kerala), auto-add into 'Other'!
+    tenders.forEach((t) => {
+      const candidates = [t.location, t.district, t.state].filter(
+        (loc): loc is string => Boolean(loc && loc.trim().length > 1)
+      );
+
+      candidates.forEach((loc) => {
+        const cleanName = loc.trim();
+        const lower = cleanName.toLowerCase();
+        // Ignore generic words
+        if (!knownNames.has(lower) && !['india', 'central', 'all india', 'nit', 'n/a', 'na'].includes(lower)) {
+          knownNames.add(lower);
+          dynamicList.push({
+            name: cleanName,
+            state: 'Other',
+            region: 'other'
+          });
+        }
+      });
+    });
+
     let list = dynamicList;
-    if (locationTab === 'rajasthan') {
-      list = list.filter((c) => c.region === 'rajasthan');
+    if (locationTab === 'primary') {
+      list = list.filter((c) => c.region === 'primary');
     } else if (locationTab === 'other') {
       list = list.filter((c) => c.region === 'other');
     }
@@ -207,14 +287,29 @@ export const TenderTable: React.FC<TenderTableProps> = ({
       );
     }
 
-    // Sort by count descending, then alphabetically
+    // Helper to calculate tender count for any new or existing city
+    const getTenderCount = (cityName: string) => {
+      if (locationCounts[cityName] !== undefined) return locationCounts[cityName];
+      const lower = cityName.toLowerCase();
+      return tenders.filter((t) =>
+        (t.location && t.location.toLowerCase().includes(lower)) ||
+        (t.district && t.district.toLowerCase().includes(lower)) ||
+        (t.state && t.state.toLowerCase().includes(lower))
+      ).length;
+    };
+
+    // Strict Sorting: The 7 Selected Hindi States ALWAYS show at the TOP, 'other' at the bottom
     return [...list].sort((a, b) => {
-      const countA = locationCounts[a.name] || 0;
-      const countB = locationCounts[b.name] || 0;
+      const aIsPrimary = a.region === 'primary' ? 0 : 1;
+      const bIsPrimary = b.region === 'primary' ? 0 : 1;
+      if (aIsPrimary !== bIsPrimary) return aIsPrimary - bIsPrimary;
+
+      const countA = getTenderCount(a.name);
+      const countB = getTenderCount(b.name);
       if (countA !== countB) return countB - countA;
       return a.name.localeCompare(b.name);
     });
-  }, [locationTab, locationSearch, locationCounts]);
+  }, [locationTab, locationSearch, locationCounts, tenders]);
 
   // Automatically reset to page 1 when data or sort changes
   React.useEffect(() => {
@@ -421,8 +516,8 @@ export const TenderTable: React.FC<TenderTableProps> = ({
               </th>
               <th>Work Details & Authority</th>
               <th className={`location-header-th ${selectedLocation ? 'is-filtered' : ''}`} ref={locationMenuRef}>
-                <div 
-                  className="location-header-btn" 
+                <div
+                  className="location-header-btn"
                   onClick={() => setIsLocationMenuOpen(!isLocationMenuOpen)}
                   title="Click to filter by Rajasthan or All Indian Cities/States"
                 >
@@ -431,7 +526,7 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                     <span>LOCATION</span>
                   </div>
                   {selectedLocation ? (
-                    <span 
+                    <span
                       className="location-pill-badge"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -453,9 +548,9 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                     <div className="loc-panel-header">
                       <div className="loc-panel-title">Filter by City / State</div>
                       {selectedLocation && (
-                        <button 
-                          type="button" 
-                          className="loc-panel-clear-btn" 
+                        <button
+                          type="button"
+                          className="loc-panel-clear-btn"
                           onClick={() => {
                             onLocationChange?.('');
                             setIsLocationMenuOpen(false);
@@ -478,9 +573,9 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                         onChange={(e) => setLocationSearch(e.target.value)}
                       />
                       {locationSearch && (
-                        <button 
-                          type="button" 
-                          className="loc-panel-search-clear" 
+                        <button
+                          type="button"
+                          className="loc-panel-search-clear"
                           onClick={() => setLocationSearch('')}
                         >
                           <X size={12} />
@@ -490,33 +585,35 @@ export const TenderTable: React.FC<TenderTableProps> = ({
 
                     {/* Region Tabs */}
                     <div className="loc-panel-tabs">
-                      <button 
+                      <button
                         type="button"
                         className={`loc-tab-btn ${locationTab === 'all' ? 'active' : ''}`}
                         onClick={() => setLocationTab('all')}
                       >
                         All
                       </button>
-                      <button 
+                      <button
                         type="button"
-                        className={`loc-tab-btn ${locationTab === 'rajasthan' ? 'active' : ''}`}
-                        onClick={() => setLocationTab('rajasthan')}
+                        className={`loc-tab-btn ${locationTab === 'primary' ? 'active' : ''}`}
+                        onClick={() => setLocationTab('primary')}
+                        title="Rajasthan, UP, MP, Haryana, Delhi/NCR, Bihar, Uttarakhand"
                       >
-                        Rajasthan (50+)
+                        Selected States (Top)
                       </button>
-                      <button 
+                      <button
                         type="button"
                         className={`loc-tab-btn ${locationTab === 'other' ? 'active' : ''}`}
                         onClick={() => setLocationTab('other')}
+                        title="Other States & Cities"
                       >
-                        Other States / Metros
+                        Other
                       </button>
                     </div>
 
                     {/* Items List */}
                     <div className="loc-panel-list">
                       {/* Show All Reset Item */}
-                      <div 
+                      <div
                         className={`loc-list-item ${!selectedLocation ? 'selected' : ''}`}
                         onClick={() => {
                           onLocationChange?.('');
@@ -529,7 +626,7 @@ export const TenderTable: React.FC<TenderTableProps> = ({
 
                       {/* If user typed a search term not in list */}
                       {locationSearch.trim() && !filteredCities.some(c => c.name.toLowerCase() === locationSearch.trim().toLowerCase()) && (
-                        <div 
+                        <div
                           className="loc-list-item custom-search-item"
                           onClick={() => {
                             onLocationChange?.(locationSearch.trim());
@@ -542,9 +639,16 @@ export const TenderTable: React.FC<TenderTableProps> = ({
 
                       {filteredCities.map((city) => {
                         const isSelected = selectedLocation?.toLowerCase() === city.name.toLowerCase();
-                        const count = locationCounts[city.name] || 0;
+                        const count = locationCounts[city.name] !== undefined
+                          ? locationCounts[city.name]
+                          : tenders.filter(t =>
+                            (t.location && t.location.toLowerCase().includes(city.name.toLowerCase())) ||
+                            (t.district && t.district.toLowerCase().includes(city.name.toLowerCase())) ||
+                            (t.state && t.state.toLowerCase().includes(city.name.toLowerCase()))
+                          ).length;
+                        const isOther = city.region === 'other';
                         return (
-                          <div 
+                          <div
                             key={city.name}
                             className={`loc-list-item ${isSelected ? 'selected' : ''} ${count > 0 ? 'has-tenders' : ''}`}
                             onClick={() => {
@@ -553,6 +657,11 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                             }}
                           >
                             <div className="loc-item-info">
+                              {isOther && (
+                                <span style={{ fontSize: '10px', color: '#f59e0b', fontWeight: 700, marginRight: '5px' }}>
+                                  [OTHER]
+                                </span>
+                              )}
                               <span className="loc-list-name">{city.name}</span>
                               {city.state && <span className="loc-list-state">({city.state})</span>}
                             </div>
