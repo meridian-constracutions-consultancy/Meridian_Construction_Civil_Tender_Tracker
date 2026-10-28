@@ -21,12 +21,13 @@ export const KeywordsModal: React.FC<KeywordsModalProps> = ({
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [newKeyword, setNewKeyword] = useState<string>('');
 
-  // Official 25 Keywords requested by the user
+  // Official 30 Keywords requested by the user
   const OFFICIAL_KEYWORDS = [
     "Consultancy", "Survey", "design", "soil", "geotech", "audit", "testing", "ndt",
-    "beutification", "landscapping", "landaqusition (la)", "dpr", "study", "physibility",
-    "plan", "pmc", "architecture", "structure", "bus stop", "railway", "dam", "bridge",
-    "highway", "station", "terminal"
+    "Non-Destructive Testing", "beutification", "landscapping", "landaqusition", "la",
+    "dpr", "Detailed Project Report", "Daily Progress Report", "study", "feasibility",
+    "plan", "pmc", "Project Management Consultant", "Project Management Consultancy",
+    "architecture", "structure", "railway", "dam", "bridge", "highway", "station", "terminal"
   ];
 
   // Load active keywords whenever modal opens
@@ -51,37 +52,54 @@ export const KeywordsModal: React.FC<KeywordsModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Add a new keyword
-  const handleAddKeyword = (e?: React.FormEvent) => {
+  // Auto-save keywords to SQLite database and trigger real-time tender re-classification
+  const autoSaveToDatabase = async (updatedList: string[]) => {
+    if (!config) return;
+    setIsSaving(true);
+    setError(null);
+    try {
+      const res = await saveKeywords({
+        search_keywords: updatedList,
+        categories: config.categories,
+        disqualifying_negative_keywords: config.disqualifying_negative_keywords,
+      });
+      setConfig({
+        ...config,
+        search_keywords: updatedList,
+      });
+      setSuccessMsg(res.message || 'Database updated successfully! Table refreshed.');
+      onSaved(); // Instantly refresh tenders table
+    } catch (err: any) {
+      setError(err.message || 'Failed to save keywords to database');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Add a new keyword and permanently save into database
+  const handleAddKeyword = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const clean = newKeyword.trim();
     if (!clean || !config) return;
 
     if (!config.search_keywords.some(k => k.toLowerCase() === clean.toLowerCase())) {
-      setConfig({
-        ...config,
-        search_keywords: [...config.search_keywords, clean],
-      });
+      const updated = [...config.search_keywords, clean];
       setNewKeyword('');
+      await autoSaveToDatabase(updated);
     }
   };
 
-  // Remove a keyword
-  const handleRemoveKeyword = (keywordToRemove: string) => {
+  // Remove keyword, permanently delete from database, and auto-remove related tenders
+  const handleRemoveKeyword = async (keywordToRemove: string) => {
     if (!config) return;
-    setConfig({
-      ...config,
-      search_keywords: config.search_keywords.filter((kw) => kw.toLowerCase() !== keywordToRemove.toLowerCase()),
-    });
+    const updated = config.search_keywords.filter((kw) => kw.toLowerCase() !== keywordToRemove.toLowerCase());
+    await autoSaveToDatabase(updated);
   };
 
-  // Reset strictly to the 25 official keywords
-  const handleResetToOfficial = () => {
+  // Reset strictly to the 30 official keywords in database
+  const handleResetToOfficial = async () => {
     if (!config) return;
-    setConfig({
-      ...config,
-      search_keywords: OFFICIAL_KEYWORDS,
-    });
+    await autoSaveToDatabase(OFFICIAL_KEYWORDS);
   };
 
   // Save changes to JSON database and trigger real-time re-classification
@@ -112,8 +130,8 @@ export const KeywordsModal: React.FC<KeywordsModalProps> = ({
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div 
-        className="modal-container" 
+      <div
+        className="modal-container"
         onClick={(e) => e.stopPropagation()}
         style={{ maxWidth: '780px', width: '92%', maxHeight: '90vh', overflowY: 'auto' }}
       >
@@ -132,8 +150,8 @@ export const KeywordsModal: React.FC<KeywordsModalProps> = ({
               </p>
             </div>
           </div>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="modal-close-btn"
             style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '6px', borderRadius: '6px' }}
           >
@@ -195,7 +213,7 @@ export const KeywordsModal: React.FC<KeywordsModalProps> = ({
                     title="Reset to official 25 keywords"
                   >
                     <RotateCcw size={13} />
-                    <span>Reset to 25 Default Keywords</span>
+                    <span>Reset to 30 Default Keywords</span>
                   </button>
                 </div>
 
