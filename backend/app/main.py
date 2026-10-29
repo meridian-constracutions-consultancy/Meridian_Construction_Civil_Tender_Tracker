@@ -48,6 +48,9 @@ async def lifespan(app: FastAPI):
         if "is_special" not in existing_cols:
             conn.execute(sa_text("ALTER TABLE tenders ADD COLUMN is_special BOOLEAN DEFAULT 0"))
             logger.info("Added column is_special to tenders table")
+        if "has_corrigendum" not in existing_cols:
+            conn.execute(sa_text("ALTER TABLE tenders ADD COLUMN has_corrigendum BOOLEAN DEFAULT 0"))
+            logger.info("Added column has_corrigendum to tenders table")
         if "saved_document_path" not in existing_cols:
             conn.execute(sa_text("ALTER TABLE tenders ADD COLUMN saved_document_path VARCHAR(512)"))
             logger.info("Added column saved_document_path to tenders table")

@@ -118,6 +118,7 @@ class IngestionService:
 
                     if is_amended:
                         existing.status = "AMENDED"
+                        existing.has_corrigendum = True
                     existing.last_verified_at = datetime.utcnow()
 
                     audit = AuditEvent(

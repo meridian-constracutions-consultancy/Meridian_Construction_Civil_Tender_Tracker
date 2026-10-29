@@ -81,6 +81,7 @@ class Tender(Base, TimestampMixin):
     
     # Integrity & Status
     status: Mapped[str] = mapped_column(String(32), default="ACTIVE", nullable=False, index=True) # ACTIVE, AMENDED, CLOSED, CANCELLED, DECLINED
+    has_corrigendum: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
     is_special: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
     saved_document_path: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
     saved_document_name: Mapped[Optional[str]] = mapped_column(String(256), nullable=True)

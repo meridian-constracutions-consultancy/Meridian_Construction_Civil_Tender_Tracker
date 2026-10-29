@@ -57,6 +57,7 @@ export interface TenderListItem {
   bidding_type?: string;
   
   status: string; // ACTIVE, AMENDED, CLOSED, DECLINED
+  has_corrigendum?: boolean;
   is_special?: boolean;
   saved_document_path?: string | null;
   saved_document_name?: string | null;

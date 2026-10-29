@@ -754,6 +754,7 @@ export const TenderTable: React.FC<TenderTableProps> = ({
               <th onClick={() => onSortChange('bid_submission_deadline')}>
                 Closing Date {sortBy === 'bid_submission_deadline' && (order === 'asc' ? '↑' : '↓')}
               </th>
+              <th style={{ textAlign: 'center' }}>Corrigendum</th>
               <th>Status</th>
               <th style={{ textAlign: 'center' }}>Actions</th>
             </tr>
@@ -873,6 +874,43 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                     {t.closingSoon && (
                       <span className="badge badge-closing-soon" style={{ marginTop: '2px' }}>
                         Closing Soon
+                      </span>
+                    )}
+                  </td>
+
+                  {/* Corrigendum YES / NO */}
+                  <td style={{ whiteSpace: 'nowrap', textAlign: 'center' }}>
+                    {t.has_corrigendum ? (
+                      <span
+                        className="badge badge-corrigendum-yes"
+                        style={{
+                          background: 'rgba(16, 185, 129, 0.18)',
+                          color: '#10b981',
+                          border: '1px solid rgba(16, 185, 129, 0.45)',
+                          fontWeight: 700,
+                          fontSize: '0.75rem',
+                          padding: '3px 9px',
+                          borderRadius: '4px',
+                          letterSpacing: '0.5px'
+                        }}
+                      >
+                        YES
+                      </span>
+                    ) : (
+                      <span
+                        className="badge badge-corrigendum-no"
+                        style={{
+                          background: 'rgba(148, 163, 184, 0.1)',
+                          color: '#94a3b8',
+                          border: '1px solid rgba(148, 163, 184, 0.25)',
+                          fontWeight: 600,
+                          fontSize: '0.75rem',
+                          padding: '3px 9px',
+                          borderRadius: '4px',
+                          letterSpacing: '0.5px'
+                        }}
+                      >
+                        NO
                       </span>
                     )}
                   </td>
@@ -1011,6 +1049,15 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                       </span>
                     )}
                     {t.status === 'AMENDED' && <span className="badge badge-amended">Amended</span>}
+                    {t.has_corrigendum ? (
+                      <span className="badge badge-corrigendum-yes" style={{ background: 'rgba(16, 185, 129, 0.18)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.45)', fontWeight: 700 }}>
+                        Corrigendum: YES
+                      </span>
+                    ) : (
+                      <span className="badge badge-corrigendum-no" style={{ background: 'rgba(148, 163, 184, 0.1)', color: '#94a3b8', border: '1px solid rgba(148, 163, 184, 0.25)', fontWeight: 600 }}>
+                        Corrigendum: NO
+                      </span>
+                    )}
                     {t.closingSoon && <span className="badge badge-closing-soon">Closing Soon</span>}
                   </div>
                   <div className="mobile-card-id">{t.tender_id}</div>

@@ -145,6 +145,7 @@ class BackgroundScheduler:
                                 existing_t.is_sub_contracting_allowed = s.get("is_sub_contracting_allowed", True)
                                 existing_t.bidding_type = s.get("bidding_type", "2-Cover (Technical + Financial BOQ)")
                                 existing_t.covers_count = s.get("covers_count", 2)
+                                existing_t.has_corrigendum = s.get("has_corrigendum", False) or s.get("status") == "AMENDED"
                                 existing_t.pre_bid_venue = s.get("pre_bid_venue", "Office of the Superintending Engineer / Chief Engineer (Procurement)")
                             else:
                                 t_obj = Tender(
@@ -185,6 +186,7 @@ class BackgroundScheduler:
                                     pre_bid_venue=s.get("pre_bid_venue", "Office of the Superintending Engineer / Chief Engineer (Procurement)"),
                                     content_hash=s.get("content_hash") or hashlib.sha256(f"{s['tender_id']}_{s.get('title', '')}".encode()).hexdigest(),
                                     classification_method="RULE_BASED",
+                                    has_corrigendum=s.get("has_corrigendum", False) or s.get("status") == "AMENDED",
                                     status=s.get("status", "ACTIVE"),
                                     original_url=s.get("original_url")
                                 )

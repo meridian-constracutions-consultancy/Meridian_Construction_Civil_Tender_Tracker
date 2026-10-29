@@ -67,6 +67,7 @@ class TenderListItem(BaseModel):
     
     # Status
     status: str
+    has_corrigendum: bool = False
     is_special: bool = False
     saved_document_path: Optional[str] = None
     saved_document_name: Optional[str] = None
