@@ -14,8 +14,7 @@ import {
   toggleSpecialTender,
   declineTender,
   restoreTender,
-  deletePermanentTender,
-  uploadSpecialDocument
+  deletePermanentTender
 } from './api/client';
 import { SSEClient, SSEConnectionStatus } from './api/sse';
 
@@ -322,21 +321,6 @@ export const App: React.FC = () => {
     }
   };
 
-  // ACTION 1 Document Helper: Upload downloaded document for Special Tender
-  const handleUploadDocument = async (tender: TenderListItem, file: File) => {
-    try {
-      await uploadSpecialDocument(tender.id, file);
-      setRefreshToast(`✓ Document saved for tender "${tender.tender_id}"! 1-Click download is now active.`);
-      setTimeout(() => setRefreshToast(null), 4000);
-      await loadTenders();
-    } catch (err) {
-      console.error('Error uploading document:', err);
-      setRefreshToast('Failed to save tender document.');
-      setTimeout(() => setRefreshToast(null), 3000);
-      throw err;
-    }
-  };
-
   return (
     <div className="app-container">
       {/* Header with live SSE status & Keywords Settings */}
@@ -412,7 +396,6 @@ export const App: React.FC = () => {
         onDeclineTender={handleDeclineTender}
         onRestoreTender={handleRestoreTender}
         onPermanentDelete={handlePermanentDelete}
-        onUploadDocument={handleUploadDocument}
       />
 
       {/* Source Monitoring & Health Status */}

@@ -13,13 +13,10 @@ import {
   Star,
   Trash2,
   RotateCcw,
-  XCircle,
-  FileText,
-  UploadCloud,
-  Download
+  XCircle
 } from 'lucide-react';
 import { TenderListItem } from '../types/tender';
-import { fetchLocations, getSpecialDocumentDownloadUrl } from '../api/client';
+import { fetchLocations } from '../api/client';
 
 interface TenderTableProps {
   tenders: TenderListItem[];
@@ -42,7 +39,6 @@ interface TenderTableProps {
   onDeclineTender?: (tender: TenderListItem) => void;
   onRestoreTender?: (tender: TenderListItem) => void;
   onPermanentDelete?: (tender: TenderListItem) => void;
-  onUploadDocument?: (tender: TenderListItem, file: File) => Promise<void>;
 }
 
 interface CityOption {
@@ -204,17 +200,11 @@ export const TenderTable: React.FC<TenderTableProps> = ({
   onDeclineTender,
   onRestoreTender,
   onPermanentDelete,
-  onUploadDocument,
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'auto' | 'table' | 'cards'>('auto');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const PAGE_SIZE = 10;
-
-  // Document Upload Modal state for Special Tenders
-  const [documentModalTender, setDocumentModalTender] = useState<TenderListItem | null>(null);
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState<boolean>(false);
 
   // Location selector state
   const [isLocationMenuOpen, setIsLocationMenuOpen] = useState<boolean>(false);
@@ -345,23 +335,6 @@ export const TenderTable: React.FC<TenderTableProps> = ({
       setTimeout(() => setCopiedId(null), 3000);
     }
   }, []);
-
-  // Handle Special Tender Document button click
-  const handleDocumentAction = useCallback((e: React.MouseEvent, t: TenderListItem) => {
-    e.stopPropagation();
-    if (t.saved_document_path) {
-      // 1-Click download: file already stored!
-      const downloadUrl = getSpecialDocumentDownloadUrl(t.id);
-      window.open(downloadUrl, '_blank');
-    } else {
-      // Document not saved yet:
-      // 1. Copy tender ID & open official portal in new tab
-      handleCopyAndOpenPortal(e, t);
-      window.open(t.original_url, '_blank');
-      // 2. Open attach document dialog
-      setDocumentModalTender(t);
-    }
-  }, [handleCopyAndOpenPortal]);
 
   // Format numbers into Indian Lakhs and Crores
   const formatIndianCurrency = useCallback((amount?: number | null) => {
@@ -514,8 +487,7 @@ export const TenderTable: React.FC<TenderTableProps> = ({
         <div className="view-info-banner special-info-banner">
           <Star size={16} color="#fbbf24" fill="#fbbf24" />
           <span>
-            <strong>Special Tenders are permanently preserved in your database</strong> and will NEVER be auto-deleted.
-            Use <strong>&quot;📄 Document&quot;</strong> to download or store documents for 1-click access.
+            <strong>Special Tenders are permanently preserved in your database</strong> and will NEVER be auto-deleted even after closing.
           </span>
         </div>
       )}
@@ -963,14 +935,6 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                             <Eye size={13} />
                             <span>Inspect</span>
                           </button>
-                          <button
-                            className={`btn btn-outline btn-table-action btn-action-doc ${t.saved_document_path ? 'has-saved-doc' : ''}`}
-                            onClick={(e) => handleDocumentAction(e, t)}
-                            title={t.saved_document_path ? '1-Click Download Stored Tender Document' : 'Open portal & attach document for 1-click download'}
-                          >
-                            {t.saved_document_path ? <Download size={13} color="#34d399" /> : <FileText size={13} color="#38bdf8" />}
-                            <span>{t.saved_document_path ? '📄 Download' : '📄 Document'}</span>
-                          </button>
                           <a
                             href={t.original_url}
                             target="_blank"
@@ -1124,13 +1088,6 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                         <span>Inspect</span>
                       </button>
                       <button
-                        className={`btn btn-outline mobile-action-btn ${t.saved_document_path ? 'has-saved-doc' : ''}`}
-                        onClick={(e) => handleDocumentAction(e, t)}
-                      >
-                        {t.saved_document_path ? <Download size={14} color="#34d399" /> : <FileText size={14} color="#38bdf8" />}
-                        <span>{t.saved_document_path ? 'Download' : 'Document'}</span>
-                      </button>
-                      <button
                         className="btn btn-outline mobile-action-btn"
                         onClick={() => onToggleSpecial?.(t)}
                         title="Remove from Special Tenders"
@@ -1201,117 +1158,6 @@ export const TenderTable: React.FC<TenderTableProps> = ({
             >
               Next →
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* 5. ATTACH TENDER DOCUMENT MODAL (For Special Tenders) */}
-      {documentModalTender && (
-        <div className="modal-backdrop" onClick={() => setDocumentModalTender(null)}>
-          <div className="modal-content doc-upload-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <div className="modal-title-group" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <FileText size={20} color="#38bdf8" />
-                <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Attach Tender Document</h3>
-              </div>
-              <button
-                type="button"
-                className="modal-close-btn"
-                onClick={() => setDocumentModalTender(null)}
-                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="modal-body doc-upload-body" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div className="doc-tender-info" style={{ background: 'rgba(30, 41, 59, 0.7)', padding: '0.85rem', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                <div style={{ color: '#38bdf8', fontWeight: 600, fontSize: '0.85rem' }}>{documentModalTender.tender_id}</div>
-                <div style={{ color: '#e2e8f0', fontSize: '0.9rem', marginTop: '4px', lineHeight: 1.4 }}>{documentModalTender.title}</div>
-              </div>
-
-              <div className="doc-instructions-box" style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '0.85rem', borderRadius: '8px', borderLeft: '3px solid #6366f1', fontSize: '0.82rem', color: '#cbd5e1' }}>
-                <p style={{ margin: '0 0 6px 0' }}>
-                  <strong>Step 1:</strong> The official portal has just been opened in your browser. Solve the captcha on that portal and download the tender file (PDF or ZIP).
-                </p>
-                <p style={{ margin: 0 }}>
-                  <strong>Step 2:</strong> Select that downloaded file below. It will be permanently stored on your server, and all future clicks on &quot;Document&quot; will download it directly with 1-click without any captcha!
-                </p>
-              </div>
-
-              <div
-                className="doc-upload-dropzone"
-                style={{
-                  border: '2px dashed rgba(99, 102, 241, 0.4)',
-                  borderRadius: '10px',
-                  padding: '1.5rem',
-                  textAlign: 'center',
-                  background: 'rgba(15, 23, 42, 0.4)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '8px',
-                  cursor: 'pointer'
-                }}
-              >
-                <UploadCloud size={36} color="#818cf8" />
-                <label className="doc-file-select-label" style={{ cursor: 'pointer' }}>
-                  <span style={{ color: '#38bdf8', fontWeight: 500, fontSize: '0.9rem' }}>
-                    {uploadFile ? uploadFile.name : 'Click here to choose downloaded tender document (PDF, ZIP)'}
-                  </span>
-                  <input
-                    type="file"
-                    accept=".pdf,.zip,.rar,.docx"
-                    style={{ display: 'none' }}
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setUploadFile(e.target.files[0]);
-                      }
-                    }}
-                  />
-                </label>
-                {uploadFile && (
-                  <div style={{ color: '#34d399', fontSize: '0.8rem', fontWeight: 600 }}>
-                    Selected: {(uploadFile.size / (1024 * 1024)).toFixed(2)} MB
-                  </div>
-                )}
-              </div>
-
-              <div className="doc-modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '0.5rem' }}>
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  onClick={() => {
-                    setDocumentModalTender(null);
-                    setUploadFile(null);
-                  }}
-                  style={{ padding: '0.5rem 1rem' }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  disabled={!uploadFile || isUploading}
-                  onClick={async () => {
-                    if (!uploadFile || !onUploadDocument || !documentModalTender) return;
-                    setIsUploading(true);
-                    try {
-                      await onUploadDocument(documentModalTender, uploadFile);
-                      setDocumentModalTender(null);
-                      setUploadFile(null);
-                    } catch (err) {
-                      console.error(err);
-                    } finally {
-                      setIsUploading(false);
-                    }
-                  }}
-                  style={{ padding: '0.5rem 1.25rem', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: '6px', cursor: !uploadFile ? 'not-allowed' : 'pointer', opacity: !uploadFile ? 0.6 : 1 }}
-                >
-                  {isUploading ? 'Saving Document...' : 'Save Document to Portal'}
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       )}
