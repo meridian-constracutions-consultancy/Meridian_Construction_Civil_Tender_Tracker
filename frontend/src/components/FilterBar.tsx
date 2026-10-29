@@ -164,12 +164,21 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           aria-label="Select design category"
         >
           <option value="">All Design & Consultancy Categories</option>
-          <option value="structural_engineering">Structural Engineering & Design</option>
-          <option value="consultancy_pmc_dpr">Architecture, PMC & DPR Consultancy</option>
-          <option value="bridges_flyovers">Bridges, ROBs & Flyovers Design</option>
-          <option value="metro_railways">Metro & Railway Design / Consultancy</option>
-          <option value="roads_highways">Highways & Roads Design / DPR</option>
-          <option value="water_supply_drainage">Water Supply & Drainage Design</option>
+          <option value="soil_geotech_testing">🔬 Geotechnical & NDT Testing</option>
+          <option value="survey_investigation">📐 Survey & Investigation</option>
+          <option value="architecture_design">🏛️ Architecture & Master Planning</option>
+          <option value="pmc_consultancy">📋 Project Management (PMC)</option>
+          <option value="dpr_feasibility">📑 DPR & Feasibility Study</option>
+          <option value="bridges_flyovers">🌉 Bridges, ROBs & Flyovers Design</option>
+          <option value="roads_highways">🛣️ Highways & Expressways Design</option>
+          <option value="metro_railways">🚇 Metro & Railways Design</option>
+          <option value="dam_water">🌊 Dam, Barrage & Water Structures</option>
+          <option value="structural_audit">🔍 Safety & Structural Audit</option>
+          <option value="structural_engineering">🏗️ Structural Engineering & Design</option>
+          <option value="water_supply_drainage">💧 Water Supply & Drainage Design</option>
+          <option value="landscaping_beautification">🌳 Landscaping & Beautification</option>
+          <option value="land_acquisition">🗺️ Land Acquisition Consultancy</option>
+          <option value="consultancy_general">💼 General Consultancy Services</option>
         </select>
 
         {/* State Dropdown */}
