@@ -36,7 +36,7 @@
     "tender_fee": 10000.0,
     "emd_exemption_allowed": false,
     "classification_reason": "Matched user keywords: Consultancy, dpr, plan",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_MPUAT_603571_1",
@@ -75,7 +75,7 @@
     "tender_fee": 590.0,
     "emd_exemption_allowed": true,
     "classification_reason": "No matching keywords from active user search list",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_WRDAS_594133_1",
@@ -114,7 +114,7 @@
     "tender_fee": 10000.0,
     "emd_exemption_allowed": true,
     "classification_reason": "Disqualified: 'restoration work' without design/consultancy context",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_ADA_604216_1",
@@ -192,7 +192,7 @@
     "tender_fee": 1000.0,
     "emd_exemption_allowed": false,
     "classification_reason": "Matched user keywords: Consultancy, dpr",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_RSRDC_602373_1",
@@ -271,7 +271,7 @@
     "tender_fee": 500.0,
     "emd_exemption_allowed": true,
     "classification_reason": "Matched user keywords: Consultancy",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_RSHA_601281_1",
@@ -466,7 +466,7 @@
     "tender_fee": 23600.0,
     "emd_exemption_allowed": false,
     "classification_reason": "Matched user keywords: Survey, testing",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_DLB_603991_1",
@@ -1051,7 +1051,7 @@
     "tender_fee": 5000.0,
     "emd_exemption_allowed": true,
     "classification_reason": "Matched user keywords: design",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_JZDUS_601395_1",
@@ -1090,7 +1090,7 @@
     "tender_fee": 1180.0,
     "emd_exemption_allowed": false,
     "classification_reason": "Matched user keywords: design, testing",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_JMRC_599622_1",
@@ -1129,7 +1129,7 @@
     "tender_fee": 50000.0,
     "emd_exemption_allowed": false,
     "classification_reason": "Matched user keywords: design, testing, station",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_JMRC_598821_1",
@@ -1168,7 +1168,7 @@
     "tender_fee": 50000.0,
     "emd_exemption_allowed": false,
     "classification_reason": "Matched user keywords: design, testing, station",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_RISL_599970_1",
@@ -1207,7 +1207,7 @@
     "tender_fee": 5000.0,
     "emd_exemption_allowed": true,
     "classification_reason": "Matched user keywords: design, study",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_RISL_599023_1",
@@ -1246,7 +1246,7 @@
     "tender_fee": 5000.0,
     "emd_exemption_allowed": true,
     "classification_reason": "Matched user keywords: design",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_RSMML_598877_1",
@@ -1285,7 +1285,7 @@
     "emd_exemption_allowed": true,
     "estimated_value": 388600000.0,
     "classification_reason": "Matched user keywords: design",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_RSRDC_596827_1",
@@ -1324,7 +1324,7 @@
     "tender_fee": 11800.0,
     "emd_exemption_allowed": false,
     "classification_reason": "Matched user keywords: design",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_ADA_596113_1",
@@ -1363,7 +1363,7 @@
     "tender_fee": 15000.0,
     "emd_exemption_allowed": true,
     "classification_reason": "Matched user keywords: design, testing",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_RRVUN_572601_1",
@@ -1402,7 +1402,7 @@
     "tender_fee": 5900.0,
     "emd_exemption_allowed": false,
     "classification_reason": "Matched user keywords: design, testing",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_BIDA_603677_1",
@@ -1948,7 +1948,7 @@
     "tender_fee": 5000.0,
     "emd_exemption_allowed": true,
     "classification_reason": "No matching keywords from active user search list",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2025_SPMCB_500381_1",
@@ -1987,7 +1987,7 @@
     "tender_fee": 10000.0,
     "emd_exemption_allowed": true,
     "classification_reason": "No matching keywords from active user search list",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_MoRTH_930727_1",
@@ -2143,7 +2143,7 @@
     "emd_exemption_allowed": false,
     "estimated_value": 3337000.0,
     "classification_reason": "Matched user keywords: Consultancy, Survey, design, soil, geotech, dpr, plan, architecture, structure",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_MoRTH_930010_1",
@@ -2299,7 +2299,7 @@
     "emd_exemption_allowed": false,
     "estimated_value": 43197150.0,
     "classification_reason": "Matched user keywords: Consultancy, dpr, study, physibility",
-    "has_corrigendum": true
+    "has_corrigendum": false
   },
   {
     "tender_id": "2026_MoRTH_929749_1",
@@ -2416,7 +2416,7 @@
     "emd_exemption_allowed": false,
     "estimated_value": 65342150.0,
     "classification_reason": "Matched user keywords: Consultancy, dpr",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_NIRD_928995_1",
@@ -2650,7 +2650,7 @@
     "tender_fee": 5000.0,
     "emd_exemption_allowed": false,
     "classification_reason": "Matched user keywords: dpr",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_MoRTH_927615_1",
@@ -2689,7 +2689,7 @@
     "emd_exemption_allowed": false,
     "estimated_value": 20353450.0,
     "classification_reason": "Matched user keywords: Consultancy, dpr",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_MoRTH_927429_1",
@@ -2962,7 +2962,7 @@
     "tender_fee": 0.0,
     "emd_exemption_allowed": false,
     "classification_reason": "Matched user keywords: Consultancy, pmc",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_DRDO_929881_1",
@@ -3079,7 +3079,7 @@
     "tender_fee": 5000.0,
     "emd_exemption_allowed": true,
     "classification_reason": "Matched user keywords: Consultancy",
-    "has_corrigendum": true
+    "has_corrigendum": false
   },
   {
     "tender_id": "2026_IIMM_929658_1",
@@ -3157,7 +3157,7 @@
     "tender_fee": 0.0,
     "emd_exemption_allowed": false,
     "classification_reason": "Matched user keywords: Consultancy",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_CWDB_931148_1",
@@ -3313,7 +3313,7 @@
     "emd_exemption_allowed": true,
     "estimated_value": 7500000.0,
     "classification_reason": "Matched user keywords: Consultancy",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_IIMJ_928393_1",
@@ -3352,7 +3352,7 @@
     "tender_fee": 1180.0,
     "emd_exemption_allowed": false,
     "classification_reason": "Matched user keywords: Consultancy, pmc",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_IPR_927929_1",
@@ -3547,7 +3547,7 @@
     "tender_fee": 0.0,
     "emd_exemption_allowed": false,
     "classification_reason": "Matched user keywords: Consultancy",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_ITG_926159_1",
@@ -3625,7 +3625,7 @@
     "tender_fee": 0.0,
     "emd_exemption_allowed": false,
     "classification_reason": "Matched user keywords: Consultancy",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_BandR_930717_1",
@@ -3703,7 +3703,7 @@
     "emd_exemption_allowed": true,
     "estimated_value": 1500000.0,
     "classification_reason": "Matched user keywords: Consultancy, testing, architecture",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_DMRC_920683_1",
@@ -3742,7 +3742,7 @@
     "tender_fee": 23600.0,
     "emd_exemption_allowed": false,
     "classification_reason": "Matched user keywords: design, architecture, station",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_BARC_930698_1",
@@ -3898,7 +3898,7 @@
     "emd_exemption_allowed": false,
     "estimated_value": 500000.0,
     "classification_reason": "Matched user keywords: structure",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_FACT_930491_1",
@@ -4015,7 +4015,7 @@
     "tender_fee": 0.0,
     "emd_exemption_allowed": false,
     "classification_reason": "Matched user keywords: structure",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_RCFL_930224_1",
@@ -4249,7 +4249,7 @@
     "tender_fee": 590.0,
     "emd_exemption_allowed": false,
     "classification_reason": "Matched user keywords: structure",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_BARC_926349_1",
@@ -4366,7 +4366,7 @@
     "emd_exemption_allowed": true,
     "estimated_value": 37000000.0,
     "classification_reason": "Matched user keywords: dpr, physibility",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_NVS_895632_1",
@@ -4405,7 +4405,7 @@
     "tender_fee": 0.0,
     "emd_exemption_allowed": false,
     "classification_reason": "Matched user keywords: physibility",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_JNPT_931249_1",
@@ -4561,7 +4561,7 @@
     "emd_exemption_allowed": true,
     "estimated_value": 700000.0,
     "classification_reason": "Matched user keywords: Survey",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_CWC_926757_1",
@@ -4822,7 +4822,7 @@
     "estimated_value": 2500000.0,
     "emd_amount": 50000.0,
     "classification_reason": "Matched user keywords: testing",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_HURL_930258_1",
@@ -4859,7 +4859,7 @@
     "estimated_value": 2500000.0,
     "emd_amount": 50000.0,
     "classification_reason": "No matching keywords from active user search list",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_HURL_929897_1",
@@ -5011,7 +5011,7 @@
     "tender_fee": 0.0,
     "emd_exemption_allowed": false,
     "classification_reason": "No matching keywords from active user search list",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_NALCO_930973_1",
@@ -5089,7 +5089,7 @@
     "emd_exemption_allowed": false,
     "estimated_value": 2500000.0,
     "classification_reason": "No matching keywords from active user search list",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_NICFS_929434_1",
@@ -5167,7 +5167,7 @@
     "tender_fee": 1180.0,
     "emd_exemption_allowed": false,
     "classification_reason": "No matching keywords from active user search list",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_POSOC_904126_1",
@@ -5245,7 +5245,7 @@
     "emd_exemption_allowed": false,
     "estimated_value": 2500000.0,
     "classification_reason": "Matched user keywords: audit",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_BARC_928510_1",
@@ -5284,7 +5284,7 @@
     "tender_fee": 0.0,
     "emd_exemption_allowed": false,
     "classification_reason": "No matching keywords from active user search list",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_DGH_927240_1",
@@ -5323,7 +5323,7 @@
     "emd_exemption_allowed": false,
     "estimated_value": 2500000.0,
     "classification_reason": "Matched user keywords: audit",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_WRD_927619_1",
@@ -5362,7 +5362,7 @@
     "emd_exemption_allowed": false,
     "estimated_value": 2500000.0,
     "classification_reason": "Matched user keywords: Consultancy",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_NHPC_928505_1",
@@ -5791,7 +5791,7 @@
     "tender_fee": 0.0,
     "emd_exemption_allowed": false,
     "classification_reason": "Matched user keywords: design, testing",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_ChPT_930809_1",
@@ -5986,7 +5986,7 @@
     "tender_fee": 0.0,
     "emd_exemption_allowed": false,
     "classification_reason": "Matched user keywords: design, testing",
-    "has_corrigendum": false
+    "has_corrigendum": true
   },
   {
     "tender_id": "2026_DMRC_930369_1",

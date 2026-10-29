@@ -38,6 +38,17 @@ body {
   outline-offset: 2px;
 }
 
+/* Universal Responsive Text & Word-Break Safeguard (Mobile, Tablet, Desktop, TV) */
+h1, h2, h3, h4, h5, h6, p, span, a, div, td, th, li {
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.tender-id-text, .tender-ref-text, .mobile-card-id, code, pre {
+  word-break: break-all;
+  overflow-wrap: anywhere;
+}
+
 /* ==============================================================================
    2. APP CONTAINER & RESPONSIVE LAYOUT
    ============================================================================== */
@@ -650,10 +661,12 @@ body {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   max-height: 720px;
+  width: 100%;
 }
 
 .tender-table {
   width: 100%;
+  min-width: 1080px;
   border-collapse: collapse;
   text-align: left;
 }
@@ -684,6 +697,7 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   font-size: 13px;
   vertical-align: middle;
+  overflow-wrap: break-word;
 }
 
 .tender-table tr {
@@ -700,6 +714,8 @@ body {
   color: #e2e8f0;
   font-family: monospace;
   font-size: 12px;
+  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
 .tender-ref-text {
@@ -770,7 +786,7 @@ body {
 
 .tender-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
   gap: 12px;
 }
 
@@ -797,6 +813,7 @@ body {
   justify-content: space-between;
   align-items: flex-start;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .mobile-card-badges {
@@ -809,7 +826,8 @@ body {
   font-family: monospace;
   font-size: 11px;
   color: #94a3b8;
-  white-space: nowrap;
+  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
 .mobile-card-title {
@@ -822,6 +840,8 @@ body {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .mobile-card-title:hover {
@@ -832,6 +852,8 @@ body {
   font-size: 11px;
   color: var(--text-muted);
   line-height: 1.2;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .mobile-card-metrics {
@@ -880,14 +902,22 @@ body {
 
 .mobile-card-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  margin-top: 4px;
+  margin-top: 6px;
+  width: 100%;
 }
 
 .mobile-action-btn {
-  flex: 1;
+  flex: 1 1 calc(50% - 4px);
   min-height: 36px;
   font-size: 12px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
 }
 
 /* Highlight newly discovered tenders dynamically inserted via SSE */
@@ -1264,6 +1294,20 @@ body {
     width: 100%;
   }
 
+  .location-select-wrapper {
+    width: 100%;
+  }
+
+  .tender-nav-tab {
+    padding: 7px 12px;
+    font-size: 0.8rem;
+    gap: 6px;
+  }
+
+  .table-title {
+    font-size: 14px;
+  }
+
   .filter-export-group {
     width: 100%;
     margin-left: 0;
@@ -1301,6 +1345,26 @@ body {
     max-height: 94vh;
     border-radius: 16px 16px 0 0;
     border-bottom: none;
+  }
+}
+
+/* ─── A1. EXTRA-COMPACT MOBILE DEVICES (<= 380px) ───────────────────────────── */
+@media (max-width: 380px) {
+  .app-container {
+    padding: 6px;
+    gap: 10px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mobile-action-btn {
+    flex: 1 1 100%;
+  }
+
+  .mobile-card-metrics {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1633,7 +1697,8 @@ body {
   position: absolute;
   top: calc(100% + 4px);
   left: 0;
-  width: 320px;
+  width: min(320px, calc(100vw - 32px));
+  max-width: 92vw;
   background: #0f172a;
   border: 1px solid #334155;
   border-radius: 10px;

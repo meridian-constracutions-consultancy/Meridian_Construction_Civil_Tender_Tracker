@@ -283,6 +283,19 @@ class GePNICDetailParser:
                         "file_url": href,
                     })
 
+        # Check if tender has corrigendum
+        has_corrigendum = False
+        corr_tbl = soup.find("table", id="corrigendumDocumenttable")
+        if corr_tbl and len(corr_tbl.find_all("tr")) > 1:
+            has_corrigendum = True
+        else:
+            for a_tag in soup.find_all("a", href=True):
+                t_attr = a_tag.get("title", "").lower()
+                tx_attr = a_tag.get_text(strip=True).lower()
+                if "corrigendum history" in t_attr or "corrigendum history" in tx_attr:
+                    has_corrigendum = True
+                    break
+
         return {
             "tender_id": tender_id,
             "reference_number": ref_no,
@@ -298,6 +311,7 @@ class GePNICDetailParser:
             "currency": "INR",
             "tender_fee": tender_fee,
             "processing_fee": processing_fee,
+            "has_corrigendum": has_corrigendum,
             "emd_amount": emd_amount,
             "emd_exemption_allowed": emd_exemption,
             "contract_duration_days": duration_days,

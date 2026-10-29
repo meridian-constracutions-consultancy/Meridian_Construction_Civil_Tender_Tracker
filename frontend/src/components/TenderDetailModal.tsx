@@ -112,6 +112,31 @@ export const TenderDetailModal: React.FC<TenderDetailModalProps> = ({ tender, on
               <span className="badge badge-civil">
                 {tender.category_id ? tender.category_id.replace('_', ' ').toUpperCase() : 'CIVIL'}
               </span>
+              {tender.has_corrigendum ? (
+                <span
+                  className="badge badge-corrigendum-yes"
+                  style={{
+                    background: 'rgba(16, 185, 129, 0.18)',
+                    color: '#10b981',
+                    border: '1px solid rgba(16, 185, 129, 0.45)',
+                    fontWeight: 700
+                  }}
+                >
+                  Corrigendum: YES
+                </span>
+              ) : (
+                <span
+                  className="badge badge-corrigendum-no"
+                  style={{
+                    background: 'rgba(148, 163, 184, 0.1)',
+                    color: '#94a3b8',
+                    border: '1px solid rgba(148, 163, 184, 0.25)',
+                    fontWeight: 600
+                  }}
+                >
+                  Corrigendum: NO
+                </span>
+              )}
               {tender.matched_keywords && (
                 <span className="badge" style={{ background: 'rgba(99, 102, 241, 0.2)', border: '1px solid rgba(99, 102, 241, 0.4)', color: '#a5b4fc', fontSize: '11px', fontWeight: 600 }}>
                   🎯 Matched: {tender.matched_keywords}
@@ -119,14 +144,14 @@ export const TenderDetailModal: React.FC<TenderDetailModalProps> = ({ tender, on
               )}
               {tender.status === 'AMENDED' && <span className="badge badge-amended">AMENDED</span>}
             </div>
-            <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#fff', lineHeight: 1.3 }}>
+            <h2 style={{ fontSize: 'clamp(15px, 1.8vw, 18px)', fontWeight: 700, color: '#fff', lineHeight: 1.3, wordBreak: 'break-word', overflowWrap: 'break-word' }}>
               {tender.title}
             </h2>
-            <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
-              ID: <span style={{ fontFamily: 'monospace', color: '#e2e8f0' }}>{tender.tender_id}</span>
+            <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px', wordBreak: 'break-word', overflowWrap: 'break-word', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
+              ID: <span style={{ fontFamily: 'monospace', color: '#e2e8f0', wordBreak: 'break-all' }}>{tender.tender_id}</span>
               <button
                 className="btn btn-outline"
-                style={{ padding: '2px 6px', fontSize: '11px', marginLeft: '6px' }}
+                style={{ padding: '2px 6px', fontSize: '11px' }}
                 onClick={() => copyToClipboard(tender.tender_id, 'id')}
                 title="Copy Tender ID"
               >
@@ -134,11 +159,11 @@ export const TenderDetailModal: React.FC<TenderDetailModalProps> = ({ tender, on
               </button>
               {tender.reference_number && (
                 <>
-                  <span style={{ margin: '0 6px', color: '#475569' }}>|</span>
-                  Ref: <span style={{ fontFamily: 'monospace', color: '#cbd5e1' }}>{tender.reference_number}</span>
+                  <span style={{ color: '#475569' }}>|</span>
+                  Ref: <span style={{ fontFamily: 'monospace', color: '#cbd5e1', wordBreak: 'break-all' }}>{tender.reference_number}</span>
                   <button
                     className="btn btn-outline"
-                    style={{ padding: '2px 6px', fontSize: '11px', marginLeft: '6px' }}
+                    style={{ padding: '2px 6px', fontSize: '11px' }}
                     onClick={() => copyToClipboard(tender.reference_number!, 'ref')}
                     title="Copy Reference Number"
                   >
@@ -150,7 +175,7 @@ export const TenderDetailModal: React.FC<TenderDetailModalProps> = ({ tender, on
           </div>
           <button
             className="btn btn-outline"
-            style={{ padding: '6px', borderRadius: '50%' }}
+            style={{ padding: '6px', borderRadius: '50%', flexShrink: 0, marginLeft: '8px' }}
             onClick={onClose}
           >
             <X size={18} />
@@ -183,6 +208,12 @@ export const TenderDetailModal: React.FC<TenderDetailModalProps> = ({ tender, on
               <span className="kv-label">Bid Submission Deadline</span>
               <span className="kv-value" style={{ color: '#fbbf24' }}>
                 {formatDate(tender.bid_submission_deadline)}
+              </span>
+            </div>
+            <div className="kv-item">
+              <span className="kv-label">Corrigendum Status</span>
+              <span className="kv-value" style={{ color: tender.has_corrigendum ? '#10b981' : '#94a3b8', fontWeight: 600 }}>
+                {tender.has_corrigendum ? 'YES (Active Corrigenda)' : 'NO'}
               </span>
             </div>
           </div>
