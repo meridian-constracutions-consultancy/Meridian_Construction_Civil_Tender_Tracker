@@ -9,6 +9,7 @@ import {
   LayoutGrid,
   Search,
   X,
+  ChevronDown,
   Star,
   Trash2,
   RotateCcw,
@@ -249,6 +250,94 @@ export const TenderTable: React.FC<TenderTableProps> = ({
     });
   }, []);
 
+  // Auto-focus search input when dropdown opens
+  useEffect(() => {
+    if (isLocationMenuOpen) {
+      setTimeout(() => searchInputRef.current?.focus(), 50);
+    }
+  }, [isLocationMenuOpen]);
+
+  // Compute filtered city options based on search query and region tab
+  const filteredCities = useMemo(() => {
+    // 1. Start with base catalog (7 Selected Hindi States: Rajasthan, UP, MP, Haryana, Delhi/NCR, Bihar, Uttarakhand)
+    const knownNames = new Set(ALL_CITIES_CATALOG.map((c) => c.name.toLowerCase()));
+    const dynamicList = [...ALL_CITIES_CATALOG];
+
+    // 2. Auto-discover from backend count API
+    Object.keys(locationCounts).forEach((locName) => {
+      if (!knownNames.has(locName.toLowerCase()) && locName.length > 2) {
+        knownNames.add(locName.toLowerCase());
+        dynamicList.push({
+          name: locName,
+          state: 'Other',
+          region: 'other'
+        });
+      }
+    });
+
+    // 3. AUTO-DETECT: Inspect all active tenders in table
+    // If any tender has a city/location not in the list (e.g. Kerala), auto-add into 'Other'!
+    tenders.forEach((t) => {
+      const candidates = [t.location, t.district, t.state].filter(
+        (loc): loc is string => Boolean(loc && loc.trim().length > 1)
+      );
+
+      candidates.forEach((loc) => {
+        const cleanName = loc.trim();
+        const lowerName = cleanName.toLowerCase();
+        if (!knownNames.has(lowerName)) {
+          knownNames.add(lowerName);
+          dynamicList.push({
+            name: cleanName,
+            state: t.state || 'Other',
+            region: 'other'
+          });
+        }
+      });
+    });
+
+    let list = dynamicList;
+
+    // Filter by Region Tabs ('all' vs 'primary' vs 'other')
+    if (locationTab === 'primary') {
+      list = list.filter((c) => c.region === 'primary');
+    } else if (locationTab === 'other') {
+      list = list.filter((c) => c.region === 'other');
+    }
+
+    if (locationSearch.trim()) {
+      const q = locationSearch.toLowerCase().trim();
+      list = list.filter(
+        (c) =>
+          c.name.toLowerCase().includes(q) ||
+          (c.state && c.state.toLowerCase().includes(q))
+      );
+    }
+
+    // Helper to calculate tender count for any city
+    const getTenderCount = (cityName: string) => {
+      if (locationCounts[cityName] !== undefined) return locationCounts[cityName];
+      const lower = cityName.toLowerCase();
+      return tenders.filter((t) =>
+        (t.location && t.location.toLowerCase().includes(lower)) ||
+        (t.district && t.district.toLowerCase().includes(lower)) ||
+        (t.state && t.state.toLowerCase().includes(lower))
+      ).length;
+    };
+
+    // Strict Sorting: The 7 Selected Hindi States ALWAYS show at the TOP, 'other' at the bottom
+    return [...list].sort((a, b) => {
+      const aIsPrimary = a.region === 'primary' ? 0 : 1;
+      const bIsPrimary = b.region === 'primary' ? 0 : 1;
+      if (aIsPrimary !== bIsPrimary) return aIsPrimary - bIsPrimary;
+
+      const countA = getTenderCount(a.name);
+      const countB = getTenderCount(b.name);
+      if (countA !== countB) return countB - countA;
+      return a.name.localeCompare(b.name);
+    });
+  }, [locationTab, locationSearch, locationCounts, tenders]);
+
   const handleCopyAndOpenPortal = useCallback((e: React.MouseEvent, t: TenderListItem) => {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(t.tender_id);
@@ -456,8 +545,8 @@ export const TenderTable: React.FC<TenderTableProps> = ({
               {currentView === 'special'
                 ? '⭐ Special Saved Tenders'
                 : currentView === 'declined'
-                ? '🗑️ Declined Tenders (Recycle Bin)'
-                : 'Latest Discovered Design & Consultancy Tenders'}
+                  ? '🗑️ Declined Tenders (Recycle Bin)'
+                  : 'Latest Discovered Design & Consultancy Tenders'}
             </span>
             <span className="table-count-badge">
               {tenders.length} displayed
@@ -511,7 +600,177 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                 Tender ID {sortBy === 'tender_id' && (order === 'asc' ? '↑' : '↓')}
               </th>
               <th>Work Details & Authority</th>
-              <th>Location</th>
+              <th className={`location-header-th ${selectedLocation ? 'is-filtered' : ''}`} ref={locationMenuRef}>
+                <div
+                  className="location-header-btn"
+                  onClick={() => setIsLocationMenuOpen(!isLocationMenuOpen)}
+                  title="Click to filter by Rajasthan or All Indian Cities/States"
+                >
+                  <div className="location-header-text">
+                    <MapPin size={12} className="loc-pin-icon" />
+                    <span>LOCATION</span>
+                  </div>
+                  {selectedLocation ? (
+                    <span
+                      className="location-pill-badge"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onLocationChange?.('');
+                      }}
+                      title={`Active filter: ${selectedLocation}. Click to clear.`}
+                    >
+                      <span className="loc-pill-name">{selectedLocation}</span>
+                      <X size={11} className="loc-pill-x" />
+                    </span>
+                  ) : (
+                    <ChevronDown size={12} className={`loc-chevron ${isLocationMenuOpen ? 'open' : ''}`} />
+                  )}
+                </div>
+
+                {isLocationMenuOpen && (
+                  <div className="location-dropdown-panel" onClick={(e) => e.stopPropagation()}>
+                    {/* Header bar */}
+                    <div className="loc-panel-header">
+                      <div className="loc-panel-title">Filter by City / State</div>
+                      {selectedLocation && (
+                        <button
+                          type="button"
+                          className="loc-panel-clear-btn"
+                          onClick={() => {
+                            onLocationChange?.('');
+                            setIsLocationMenuOpen(false);
+                          }}
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Search box */}
+                    <div className="loc-panel-search">
+                      <Search size={13} className="loc-panel-search-icon" />
+                      <input
+                        ref={searchInputRef}
+                        type="text"
+                        className="loc-panel-search-input"
+                        placeholder="Search city/state (e.g. Jaipur, Delhi, Sawai)..."
+                        value={locationSearch}
+                        onChange={(e) => setLocationSearch(e.target.value)}
+                      />
+                      {locationSearch && (
+                        <button
+                          type="button"
+                          className="loc-panel-search-clear"
+                          onClick={() => setLocationSearch('')}
+                        >
+                          <X size={12} />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Region Tabs */}
+                    <div className="loc-panel-tabs">
+                      <button
+                        type="button"
+                        className={`loc-tab-btn ${locationTab === 'all' ? 'active' : ''}`}
+                        onClick={() => setLocationTab('all')}
+                      >
+                        All
+                      </button>
+                      <button
+                        type="button"
+                        className={`loc-tab-btn ${locationTab === 'primary' ? 'active' : ''}`}
+                        onClick={() => setLocationTab('primary')}
+                        title="Rajasthan, UP, MP, Haryana, Delhi/NCR, Bihar, Uttarakhand"
+                      >
+                        Selected States (Top)
+                      </button>
+                      <button
+                        type="button"
+                        className={`loc-tab-btn ${locationTab === 'other' ? 'active' : ''}`}
+                        onClick={() => setLocationTab('other')}
+                        title="Other States & Cities"
+                      >
+                        Other
+                      </button>
+                    </div>
+
+                    {/* Items List */}
+                    <div className="loc-panel-list">
+                      {/* Show All Reset Item */}
+                      <div
+                        className={`loc-list-item ${!selectedLocation ? 'selected' : ''}`}
+                        onClick={() => {
+                          onLocationChange?.('');
+                          setIsLocationMenuOpen(false);
+                        }}
+                      >
+                        <span className="loc-list-name">📍 All Locations (Show All)</span>
+                        {!selectedLocation && <Check size={13} className="loc-check-icon" />}
+                      </div>
+
+                      {/* If user typed a search term not in list */}
+                      {locationSearch.trim() && !filteredCities.some(c => c.name.toLowerCase() === locationSearch.trim().toLowerCase()) && (
+                        <div
+                          className="loc-list-item custom-search-item"
+                          onClick={() => {
+                            onLocationChange?.(locationSearch.trim());
+                            setIsLocationMenuOpen(false);
+                          }}
+                        >
+                          <span className="loc-list-name">🔍 Filter tenders matching &quot;<b>{locationSearch.trim()}</b>&quot;</span>
+                        </div>
+                      )}
+
+                      {filteredCities.map((city) => {
+                        const isSelected = selectedLocation?.toLowerCase() === city.name.toLowerCase();
+                        const count = locationCounts[city.name] !== undefined
+                          ? locationCounts[city.name]
+                          : tenders.filter(t =>
+                            (t.location && t.location.toLowerCase().includes(city.name.toLowerCase())) ||
+                            (t.district && t.district.toLowerCase().includes(city.name.toLowerCase())) ||
+                            (t.state && t.state.toLowerCase().includes(city.name.toLowerCase()))
+                          ).length;
+                        const isOther = city.region === 'other';
+                        return (
+                          <div
+                            key={city.name}
+                            className={`loc-list-item ${isSelected ? 'selected' : ''} ${count > 0 ? 'has-tenders' : ''}`}
+                            onClick={() => {
+                              onLocationChange?.(city.name);
+                              setIsLocationMenuOpen(false);
+                            }}
+                          >
+                            <div className="loc-item-info">
+                              {isOther && (
+                                <span style={{ fontSize: '10px', color: '#f59e0b', fontWeight: 700, marginRight: '5px' }}>
+                                  [OTHER]
+                                </span>
+                              )}
+                              <span className="loc-list-name">{city.name}</span>
+                              {city.state && <span className="loc-list-state">({city.state})</span>}
+                            </div>
+                            <div className="loc-item-meta">
+                              {count > 0 && (
+                                <span className="loc-tender-count-badge">
+                                  {count} {count === 1 ? 'tender' : 'tenders'}
+                                </span>
+                              )}
+                              {isSelected && <Check size={13} className="loc-check-icon" />}
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {filteredCities.length === 0 && (
+                        <div className="loc-empty-hint">
+                          No pre-catalogued city found. Click above to search &quot;{locationSearch}&quot;.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </th>
               <th>Category</th>
               <th onClick={() => onSortChange('estimated_value')} style={{ textAlign: 'right' }}>
                 Value (INR) {sortBy === 'estimated_value' && (order === 'asc' ? '↑' : '↓')}
@@ -540,8 +799,8 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                   {currentView === 'special'
                     ? '⭐ No Special Tenders saved yet. Click the ⭐ star on any tender to save it here forever!'
                     : currentView === 'declined'
-                    ? '🗑️ No declined tenders. Tenders declined will appear here until auto-deleted on expiry.'
-                    : 'No tenders match the specified filters. Try adjusting your search criteria.'}
+                      ? '🗑️ No declined tenders. Tenders declined will appear here until auto-deleted on expiry.'
+                      : 'No tenders match the specified filters. Try adjusting your search criteria.'}
                 </td>
               </tr>
             ) : (
@@ -766,8 +1025,8 @@ export const TenderTable: React.FC<TenderTableProps> = ({
             {currentView === 'special'
               ? '⭐ No Special Tenders saved yet.'
               : currentView === 'declined'
-              ? '🗑️ No declined tenders.'
-              : 'No tenders match the specified filters.'}
+                ? '🗑️ No declined tenders.'
+                : 'No tenders match the specified filters.'}
           </div>
         ) : (
           <div className="tender-cards-grid">
