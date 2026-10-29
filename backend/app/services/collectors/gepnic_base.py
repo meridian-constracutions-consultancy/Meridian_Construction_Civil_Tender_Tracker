@@ -183,7 +183,7 @@ class GePNICBaseCollector(BaseCollector):
             # Dynamically use configured search keywords from classification engine (customizable via UI settings)
             target_keywords = classification_engine.get_search_keywords()
             if not target_keywords:
-                target_keywords = ["design", "consultancy", "consultant", "dpr", "pmc", "structural"]
+                target_keywords = ["design", "consultancy", "consultant", "dpr", "pmc", "structural", "survey", "supervision", "architect"]
 
             
             candidate_links: List[Tuple[str, str]] = []
