@@ -204,10 +204,10 @@
     "original_url": "https://eproc.rajasthan.gov.in/nicgep/app?component=%24DirectLink_0&page=FrontEndAdvancedSearchResult&service=direct&session=T&sp=SLf2pkjuenhXMxwofZ%2FmrPA%3D%3D",
     "published_date": "2026-09-30T18:55:00",
     "published_date_raw": "30-Sep-2026 06:55 PM",
-    "bid_submission_deadline": "2026-10-28T18:00:00",
-    "bid_opening_date": "2026-10-29T11:00:00",
+    "bid_submission_deadline": "2026-11-04T18:00:00",
+    "bid_opening_date": "2026-11-05T11:00:00",
     "document_download_start_date": "2026-09-30T18:55:00",
-    "document_download_end_date": "2026-10-28T18:00:00",
+    "document_download_end_date": "2026-11-04T18:00:00",
     "pre_bid_venue": "Office of the Superintending Engineer / Chief Engineer (Procurement)",
     "matched_keywords": "Consultancy, pmc",
     "currency": "INR",
@@ -225,7 +225,8 @@
     "emd_amount": 24300.0,
     "tender_fee": 590.0,
     "emd_exemption_allowed": false,
-    "classification_reason": "Matched user keywords: Consultancy, pmc"
+    "classification_reason": "Matched user keywords: Consultancy, pmc",
+    "bid_submission_start_date": "2026-10-01T15:00:00"
   },
   {
     "tender_id": "2026_MEDIC_602848_1",
