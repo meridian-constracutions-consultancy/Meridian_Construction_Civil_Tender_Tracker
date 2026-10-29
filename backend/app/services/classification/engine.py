@@ -189,24 +189,51 @@ class ClassificationEngine:
                 reason="No matching keywords from active user search list"
             )
 
-        # Step 4: Map to appropriate category for DB FK integrity & clean UI tag
+             # Step 4: Map strictly to each tender's actual specific category
         matched_lower = {k.lower() for k in matched_keywords}
-        if any(k in matched_lower for k in ["railway", "metro", "station"]):
-            cat_id = "metro_railways"
-            cat_name = "Metro & Railway Design / Consultancy"
-        elif "bridge" in matched_lower:
+        if any(k in matched_lower for k in ["soil", "geotech", "testing", "ndt", "non-destructive testing"]):
+            cat_id = "soil_geotech_testing"
+            cat_name = "Geotechnical & NDT Testing"
+        elif "survey" in matched_lower:
+            cat_id = "survey_investigation"
+            cat_name = "Survey & Investigation"
+        elif any(k in matched_lower for k in ["bridge", "flyover", "rob"]):
             cat_id = "bridges_flyovers"
-            cat_name = "Bridges, ROBs & Flyovers Design"
+            cat_name = "Bridges & ROBs Design"
         elif "highway" in matched_lower:
             cat_id = "roads_highways"
-            cat_name = "Highways & Roads Design / DPR Consultancy"
-        elif any(k in matched_lower for k in ["structure", "soil", "geotech", "testing", "ndt", "dam"]):
+            cat_name = "Highways & Expressways Design"
+        elif any(k in matched_lower for k in ["railway", "metro", "station", "terminal"]):
+            cat_id = "metro_railways"
+            cat_name = "Railways & Station Design"
+        elif "dam" in matched_lower:
+            cat_id = "dam_water"
+            cat_name = "Dam & Water Structures Design"
+        elif any(k in matched_lower for k in ["beutification", "landscapping", "beautification", "landscaping"]):
+            cat_id = "landscaping_beautification"
+            cat_name = "Landscaping & Beautification"
+        elif any(k in matched_lower for k in ["landaqusition", "la", "land acquisition"]):
+            cat_id = "land_acquisition"
+            cat_name = "Land Acquisition Consultancy"
+        elif "audit" in matched_lower:
+            cat_id = "structural_audit"
+            cat_name = "Safety & Structural Audit"
+        elif any(k in matched_lower for k in ["architecture", "architectural"]):
+            cat_id = "architecture_design"
+            cat_name = "Architectural & Design Consultancy"
+        elif any(k in matched_lower for k in ["pmc", "project management consultant", "project management consultancy"]):
+            cat_id = "pmc_consultancy"
+            cat_name = "Project Management (PMC)"
+        elif any(k in matched_lower for k in ["dpr", "detailed project report", "daily progress report", "study", "feasibility", "plan"]):
+            cat_id = "dpr_feasibility"
+            cat_name = "DPR & Feasibility Study"
+        elif "structure" in matched_lower:
             cat_id = "structural_engineering"
             cat_name = "Structural Engineering & Design"
         else:
-            cat_id = "consultancy_pmc_dpr"
-            cat_name = "Architecture, PMC & DPR Consultancy"
-
+            cat_id = "consultancy_general"
+            cat_name = "Civil Consultancy Services"
+        
         return ClassificationResult(
             is_civil_construction=True,
             category_id=cat_id,

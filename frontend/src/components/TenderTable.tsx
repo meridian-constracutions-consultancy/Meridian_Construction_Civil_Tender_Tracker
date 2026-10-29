@@ -387,12 +387,20 @@ export const TenderTable: React.FC<TenderTableProps> = ({
 
   const getCategoryLabel = useCallback((id?: string) => {
     switch (id) {
-      case 'roads_highways': return 'Roads & Highways Design';
+      case 'soil_geotech_testing': return 'Geotechnical & NDT Testing';
+      case 'survey_investigation': return 'Survey & Investigation';
       case 'bridges_flyovers': return 'Bridges & ROBs Design';
-      case 'metro_railways': return 'Metro & Railways Design';
-      case 'water_supply_drainage': return 'Water & Drainage Design';
+      case 'roads_highways': return 'Highways & Expressways Design';
+      case 'metro_railways': return 'Railways & Station Design';
+      case 'dam_water': return 'Dam & Water Structures Design';
+      case 'landscaping_beautification': return 'Landscaping & Beautification';
+      case 'land_acquisition': return 'Land Acquisition Consultancy';
+      case 'structural_audit': return 'Safety & Structural Audit';
+      case 'architecture_design': return 'Architecture & Design';
+      case 'pmc_consultancy': return 'Project Management (PMC)';
+      case 'dpr_feasibility': return 'DPR & Feasibility Study';
       case 'structural_engineering': return 'Structural Design';
-      case 'consultancy_pmc_dpr': return 'PMC / DPR Consultancy';
+      case 'consultancy_general': return 'Consultancy Services';
       default: return 'Design & Consultancy';
     }
   }, []);
@@ -805,26 +813,12 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                     )}
                   </td>
 
-                  {/* Status */}
+                  {/* Status: Shows only the real status (Active or Amended) */}
                   <td style={{ whiteSpace: 'nowrap' }}>
                     {t.status === 'AMENDED' ? (
                       <span className="badge badge-amended">Amended</span>
                     ) : (
                       <span className="badge badge-civil">Active</span>
-                    )}
-                    {t.is_joint_venture_allowed !== false && (
-                      <div style={{ marginTop: '3px' }}>
-                        <span className="badge" style={{ background: 'rgba(56, 189, 248, 0.12)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)', fontSize: '10px' }}>
-                          🤝 JV Allowed
-                        </span>
-                      </div>
-                    )}
-                    {t.pre_bid_meeting_date && (
-                      <div style={{ marginTop: '2px' }}>
-                        <span className="badge" style={{ background: 'rgba(192, 132, 252, 0.15)', color: '#c084fc', border: '1px solid rgba(192, 132, 252, 0.3)', fontSize: '10px' }}>
-                          📅 Pre-Bid Active
-                        </span>
-                      </div>
                     )}
                   </td>
 
@@ -889,16 +883,7 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                     )}
                     {t.status === 'AMENDED' && <span className="badge badge-amended">Amended</span>}
                     {t.closingSoon && <span className="badge badge-closing-soon">Closing Soon</span>}
-                    {t.is_joint_venture_allowed !== false && (
-                      <span className="badge" style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)' }}>
-                        🤝 JV
-                      </span>
-                    )}
-                    {t.pre_bid_meeting_date && (
-                      <span className="badge" style={{ background: 'rgba(192, 132, 252, 0.15)', color: '#c084fc', border: '1px solid rgba(192, 132, 252, 0.3)' }}>
-                        📅 Pre-Bid
-                      </span>
-                    )}
+
                   </div>
                   <div className="mobile-card-id">{t.tender_id}</div>
                 </div>
