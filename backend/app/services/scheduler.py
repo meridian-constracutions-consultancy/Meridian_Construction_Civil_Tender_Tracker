@@ -46,7 +46,17 @@ class BackgroundScheduler:
                 {"id": "bridges_flyovers", "name": "Bridges, ROBs & Flyovers Design", "description": "Detailed design, DPR, and proof checking for bridges, flyovers, ROBs, RUBs"},
                 {"id": "metro_railways", "name": "Metro & Railway Design / Consultancy", "description": "Detailed design consultancy, DPR, alignment, and station design for JMRC, DMRC, IRCON, DFCCIL"},
                 {"id": "roads_highways", "name": "Highways & Roads Design / DPR Consultancy", "description": "DPR, feasibility studies, detailed engineering consultancy for NHAI, PWD, RSRDC"},
-                {"id": "water_supply_drainage", "name": "Water Supply & Drainage Design", "description": "Hydraulic modeling, pipeline design, WTP/STP design, sewerage and drainage network design"}
+                {"id": "water_supply_drainage", "name": "Water Supply & Drainage Design", "description": "Hydraulic modeling, pipeline design, WTP/STP design, sewerage and drainage network design"},
+                {"id": "soil_geotech_testing", "name": "Geotechnical & NDT Testing", "description": "Soil, geotech, testing, NDT"},
+                {"id": "survey_investigation", "name": "Survey & Investigation", "description": "Topographical and land survey"},
+                {"id": "dam_water", "name": "Dam & Water Structures Design", "description": "Dams, barrages, water structures"},
+                {"id": "landscaping_beautification", "name": "Landscaping & Beautification", "description": "Landscaping and beautification"},
+                {"id": "land_acquisition", "name": "Land Acquisition Consultancy", "description": "Land acquisition and LA consultancy"},
+                {"id": "structural_audit", "name": "Safety & Structural Audit", "description": "Structural safety and audit"},
+                {"id": "architecture_design", "name": "Architectural & Design Consultancy", "description": "Architectural and building design"},
+                {"id": "pmc_consultancy", "name": "Project Management (PMC)", "description": "Project management consultancy"},
+                {"id": "dpr_feasibility", "name": "DPR & Feasibility Study", "description": "DPR and feasibility studies"},
+                {"id": "consultancy_general", "name": "Civil Consultancy Services", "description": "General civil consultancy"}
             ]
             for cat_data in categories_to_seed:
                 existing_cat = db.get(Category, cat_data["id"])
