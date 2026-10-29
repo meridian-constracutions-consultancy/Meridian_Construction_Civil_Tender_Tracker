@@ -1,8 +1,10 @@
+import os
 from datetime import datetime, timedelta
 from typing import Optional
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException, UploadFile, File
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import select, func, or_, desc, asc
+from sqlalchemy import select, func, or_, desc, asc, delete
 
 from app.db.session import get_db
 from app.models.tender import Tender
@@ -13,7 +15,8 @@ router = APIRouter(prefix="/tenders", tags=["tenders"])
 
 @router.get("", response_model=TenderListResponse)
 def list_tenders(
-    limit: int = Query(10, ge=1, le=100, description="Display limit (default 10 per page)"),
+    view: str = Query("main", pattern="^(main|special|declined)$", description="View mode: main, special, or declined"),
+    limit: int = Query(50, ge=1, le=100, description="Display limit (default 50 per page)"),
     offset: int = Query(0, ge=0),
     search: Optional[str] = Query(None, description="Keyword search in title, reference number, or organization"),
     is_civil_only: bool = Query(True, description="Strictly keyword-matched design & consultancy tenders only"),
@@ -33,10 +36,37 @@ def list_tenders(
     db: Session = Depends(get_db)
 ):
     """
-    Returns only keyword-matched Design & Consultancy tenders in strict chronological order.
+    Returns Design & Consultancy tenders segregated into Main, Special, and Declined views.
+    Automatically purges expired tenders from main and declined lists while permanently preserving Special Tenders.
     """
-    # Base filter criteria: ALWAYS strictly enforce keyword-matched tenders only
+    now = datetime.utcnow()
+
+    # 1. AUTODELETE EXPIRED TENDERS:
+    # Purge tenders whose bid submission deadline has elapsed, UNLESS marked as special
+    try:
+        db.execute(
+            delete(Tender).where(
+                Tender.is_special == False,
+                Tender.bid_submission_deadline.is_not(None),
+                Tender.bid_submission_deadline < now
+            )
+        )
+        db.commit()
+    except Exception as e:
+        db.rollback()
+
+    # 2. Base filter criteria: ALWAYS strictly enforce keyword-matched tenders only
     conditions = [Tender.is_civil_construction == True]
+
+    # View separation
+    if view == "special":
+        conditions.append(Tender.is_special == True)
+    elif view == "declined":
+        conditions.append(Tender.status == "DECLINED")
+        conditions.append(Tender.is_special == False)
+    else:  # "main" view
+        conditions.append(Tender.is_special == False)
+        conditions.append(Tender.status != "DECLINED")
 
     if category_id:
         conditions.append(Tender.category_id == category_id)
@@ -69,7 +99,6 @@ def list_tenders(
     if jv_allowed:
         conditions.append(Tender.is_joint_venture_allowed == True)
 
-    now = datetime.utcnow()
     # IST date threshold for "Listed Today"
     now_ist = now + timedelta(hours=5, minutes=30)
     today_ist_start = datetime.combine(now_ist.date(), datetime.min.time())
@@ -101,9 +130,30 @@ def list_tenders(
             )
         )
 
-    # Compute high-level dashboard metrics (all strictly keyword-matched design tenders)
+    # Compute high-level dashboard metrics
     total_count = db.scalar(select(func.count(Tender.id)).where(Tender.is_civil_construction == True)) or 0
     civil_count = total_count
+
+    main_count = db.scalar(
+        select(func.count(Tender.id)).where(
+            Tender.is_civil_construction == True,
+            Tender.is_special == False,
+            Tender.status != "DECLINED"
+        )
+    ) or 0
+
+    special_count = db.scalar(
+        select(func.count(Tender.id)).where(
+            Tender.is_special == True
+        )
+    ) or 0
+
+    declined_count = db.scalar(
+        select(func.count(Tender.id)).where(
+            Tender.status == "DECLINED",
+            Tender.is_special == False
+        )
+    ) or 0
 
     closing_soon_count = db.scalar(
         select(func.count(Tender.id)).where(
@@ -127,12 +177,11 @@ def list_tenders(
         )
     ) or 0
 
-    # Query matching count
+    # Query matching count for current view
     query_count = select(func.count(Tender.id))
     if conditions:
         query_count = query_count.where(*conditions)
     raw_matching_count = db.scalar(query_count) or 0
-    # User requested maximum 100 tenders total
     matching_count = min(100, raw_matching_count)
 
     # Main data query
@@ -140,14 +189,12 @@ def list_tenders(
     if conditions:
         query = query.where(*conditions)
 
-    # Strict chronological sorting (e.g. 6:30 PM before 6:00 PM)
     sort_column = getattr(Tender, sort_by)
     if order == "desc":
         query = query.order_by(sort_column.desc().nullslast(), Tender.id.desc())
     else:
         query = query.order_by(sort_column.asc().nullsfirst(), Tender.id.asc())
 
-    # Limit and offset pagination (capped at 100 total)
     effective_limit = min(limit, max(0, 100 - offset))
     query = query.offset(offset).limit(effective_limit)
     items = db.scalars(query).all()
@@ -159,6 +206,9 @@ def list_tenders(
         closing_soon_count=closing_soon_count,
         today_count=today_count,
         under_15_days_count=under_15_days_count,
+        main_count=main_count,
+        special_count=special_count,
+        declined_count=declined_count,
         limit=limit,
         offset=offset,
         items=items
@@ -198,6 +248,126 @@ def list_tender_locations(db: Session = Depends(get_db)):
     priority = ["Jaipur", "Delhi", "Sawai Madhopur", "Jodhpur", "Kota", "Ajmer", "Udaipur"]
     results.sort(key=lambda x: (0 if x["name"] in priority else 1, priority.index(x["name"]) if x["name"] in priority else -x["count"]))
     return {"locations": results}
+
+
+@router.post("/{id}/special")
+def toggle_special_tender(id: str, db: Session = Depends(get_db)):
+    """
+    Marks or unmarks a tender as Special / Important.
+    Special tenders are strictly preserved forever and never auto-deleted.
+    """
+    tender = db.get(Tender, id)
+    if not tender:
+        raise HTTPException(status_code=404, detail="Tender not found")
+
+    tender.is_special = not tender.is_special
+    # If transitioning to special, restore active status if previously declined
+    if tender.is_special and tender.status == "DECLINED":
+        tender.status = "ACTIVE"
+
+    db.commit()
+    db.refresh(tender)
+    return {"id": tender.id, "is_special": tender.is_special, "status": tender.status}
+
+
+@router.post("/{id}/decline")
+def decline_tender(id: str, db: Session = Depends(get_db)):
+    """
+    Moves a tender to the Declined / Closed list.
+    Declined tenders auto-delete when their closing date expires.
+    """
+    tender = db.get(Tender, id)
+    if not tender:
+        raise HTTPException(status_code=404, detail="Tender not found")
+
+    tender.status = "DECLINED"
+    tender.is_special = False
+    db.commit()
+    db.refresh(tender)
+    return {"id": tender.id, "status": "DECLINED", "is_special": False}
+
+
+@router.post("/{id}/restore")
+def restore_tender(id: str, db: Session = Depends(get_db)):
+    """
+    Restores a declined or closed tender back into the Main active list.
+    """
+    tender = db.get(Tender, id)
+    if not tender:
+        raise HTTPException(status_code=404, detail="Tender not found")
+
+    tender.status = "ACTIVE"
+    tender.is_special = False
+    db.commit()
+    db.refresh(tender)
+    return {"id": tender.id, "status": "ACTIVE", "is_special": False}
+
+
+@router.delete("/{id}/permanent")
+def delete_tender_permanent(id: str, db: Session = Depends(get_db)):
+    """
+    Permanently erases a tender from the database.
+    """
+    tender = db.get(Tender, id)
+    if not tender:
+        raise HTTPException(status_code=404, detail="Tender not found")
+
+    db.delete(tender)
+    db.commit()
+    return {"id": id, "deleted": True}
+
+
+@router.post("/{id}/document")
+async def upload_special_tender_document(id: str, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    """
+    Uploads and permanently attaches the official tender document (PDF/ZIP) for this tender.
+    Subsequent clicks on Document button download this file instantly.
+    """
+    tender = db.get(Tender, id)
+    if not tender:
+        raise HTTPException(status_code=404, detail="Tender not found")
+
+    docs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "downloads", "special_docs")
+    os.makedirs(docs_dir, exist_ok=True)
+
+    safe_name = "".join(c for c in file.filename if c.isalnum() or c in "._- ")
+    clean_filename = f"{tender.tender_id}_{safe_name}".replace("/", "_").replace("\\", "_")
+    dest_path = os.path.join(docs_dir, clean_filename)
+
+    content = await file.read()
+    with open(dest_path, "wb") as f:
+        f.write(content)
+
+    tender.saved_document_path = dest_path
+    tender.saved_document_name = file.filename
+    db.commit()
+    db.refresh(tender)
+
+    return {
+        "status": "UPLOADED",
+        "saved_document_name": file.filename,
+        "tender_id": tender.id
+    }
+
+
+@router.get("/{id}/document")
+def download_special_tender_document(id: str, db: Session = Depends(get_db)):
+    """
+    Downloads the permanently saved tender document if present, or returns 404 with portal link.
+    """
+    tender = db.get(Tender, id)
+    if not tender:
+        raise HTTPException(status_code=404, detail="Tender not found")
+
+    if tender.saved_document_path and os.path.exists(tender.saved_document_path):
+        return FileResponse(
+            tender.saved_document_path,
+            filename=tender.saved_document_name or f"{tender.tender_id}.pdf"
+        )
+    raise HTTPException(
+        status_code=404,
+        detail={"message": "Document not saved locally yet", "original_url": tender.original_url}
+    )
 
 
 @router.get("/{id_or_tender_id}", response_model=TenderDetail)

@@ -1,7 +1,24 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { ExternalLink, Eye, Building, MapPin, Check, LayoutList, LayoutGrid, Calendar, AlertTriangle, ChevronDown, Search, X } from 'lucide-react';
+import {
+  ExternalLink,
+  Eye,
+  Building,
+  MapPin,
+  Check,
+  LayoutList,
+  LayoutGrid,
+  Search,
+  X,
+  Star,
+  Trash2,
+  RotateCcw,
+  XCircle,
+  FileText,
+  UploadCloud,
+  Download
+} from 'lucide-react';
 import { TenderListItem } from '../types/tender';
-import { fetchLocations } from '../api/client';
+import { fetchLocations, getSpecialDocumentDownloadUrl } from '../api/client';
 
 interface TenderTableProps {
   tenders: TenderListItem[];
@@ -13,6 +30,18 @@ interface TenderTableProps {
   isCivilOnly?: boolean;
   selectedLocation?: string;
   onLocationChange?: (location: string) => void;
+  currentView?: 'main' | 'special' | 'declined';
+  onViewChange?: (view: 'main' | 'special' | 'declined') => void;
+  viewCounts?: {
+    main: number;
+    special: number;
+    declined: number;
+  };
+  onToggleSpecial?: (tender: TenderListItem) => void;
+  onDeclineTender?: (tender: TenderListItem) => void;
+  onRestoreTender?: (tender: TenderListItem) => void;
+  onPermanentDelete?: (tender: TenderListItem) => void;
+  onUploadDocument?: (tender: TenderListItem, file: File) => Promise<void>;
 }
 
 interface CityOption {
@@ -79,7 +108,7 @@ const ALL_CITIES_CATALOG: CityOption[] = [
   { name: 'Sujangarh', state: 'Rajasthan', region: 'primary' },
   { name: 'Abu Road', state: 'Rajasthan', region: 'primary' },
 
-  // 2. DELHI / NCR (Primary Region)
+  // 2. DELHI / NCR
   { name: 'Delhi', state: 'Delhi/NCR', region: 'primary' },
   { name: 'New Delhi', state: 'Delhi/NCR', region: 'primary' },
   { name: 'Noida', state: 'Delhi/NCR', region: 'primary' },
@@ -90,7 +119,7 @@ const ALL_CITIES_CATALOG: CityOption[] = [
   { name: 'Sonipat', state: 'Delhi/NCR', region: 'primary' },
   { name: 'Meerut', state: 'Delhi/NCR', region: 'primary' },
 
-  // 3. UTTAR PRADESH (Primary Hindi State)
+  // 3. UTTAR PRADESH
   { name: 'Lucknow', state: 'Uttar Pradesh', region: 'primary' },
   { name: 'Kanpur', state: 'Uttar Pradesh', region: 'primary' },
   { name: 'Varanasi', state: 'Uttar Pradesh', region: 'primary' },
@@ -101,78 +130,61 @@ const ALL_CITIES_CATALOG: CityOption[] = [
   { name: 'Moradabad', state: 'Uttar Pradesh', region: 'primary' },
   { name: 'Saharanpur', state: 'Uttar Pradesh', region: 'primary' },
   { name: 'Gorakhpur', state: 'Uttar Pradesh', region: 'primary' },
-  { name: 'Jhansi', state: 'Uttar Pradesh', region: 'primary' },
   { name: 'Mathura', state: 'Uttar Pradesh', region: 'primary' },
   { name: 'Ayodhya', state: 'Uttar Pradesh', region: 'primary' },
-  { name: 'Muzaffarnagar', state: 'Uttar Pradesh', region: 'primary' },
-  { name: 'Firozabad', state: 'Uttar Pradesh', region: 'primary' },
-  { name: 'Mirzapur', state: 'Uttar Pradesh', region: 'primary' },
-  { name: 'Rampur', state: 'Uttar Pradesh', region: 'primary' },
+  { name: 'Jhansi', state: 'Uttar Pradesh', region: 'primary' },
 
-  // 4. MADHYA PRADESH (Primary Hindi State)
+  // 4. MADHYA PRADESH
   { name: 'Bhopal', state: 'Madhya Pradesh', region: 'primary' },
   { name: 'Indore', state: 'Madhya Pradesh', region: 'primary' },
   { name: 'Gwalior', state: 'Madhya Pradesh', region: 'primary' },
   { name: 'Jabalpur', state: 'Madhya Pradesh', region: 'primary' },
   { name: 'Ujjain', state: 'Madhya Pradesh', region: 'primary' },
-  { name: 'Sagar', state: 'Madhya Pradesh', region: 'primary' },
-  { name: 'Dewas', state: 'Madhya Pradesh', region: 'primary' },
-  { name: 'Satna', state: 'Madhya Pradesh', region: 'primary' },
-  { name: 'Ratlam', state: 'Madhya Pradesh', region: 'primary' },
-  { name: 'Rewa', state: 'Madhya Pradesh', region: 'primary' },
-  { name: 'Singrauli', state: 'Madhya Pradesh', region: 'primary' },
-  { name: 'Katni', state: 'Madhya Pradesh', region: 'primary' },
-  { name: 'Shivpuri', state: 'Madhya Pradesh', region: 'primary' },
-  { name: 'Chhindwara', state: 'Madhya Pradesh', region: 'primary' },
-  { name: 'Vidisha', state: 'Madhya Pradesh', region: 'primary' },
 
-  // 5. HARYANA (Primary Hindi State)
-  { name: 'Chandigarh', state: 'Haryana', region: 'primary' },
-  { name: 'Ambala', state: 'Haryana', region: 'primary' },
+  // 5. HARYANA
+  { name: 'Chandigarh', state: 'Haryana/Punjab', region: 'primary' },
   { name: 'Panipat', state: 'Haryana', region: 'primary' },
-  { name: 'Karnal', state: 'Haryana', region: 'primary' },
+  { name: 'Ambala', state: 'Haryana', region: 'primary' },
   { name: 'Rohtak', state: 'Haryana', region: 'primary' },
   { name: 'Hisar', state: 'Haryana', region: 'primary' },
-  { name: 'Yamunanagar', state: 'Haryana', region: 'primary' },
-  { name: 'Panchkula', state: 'Haryana', region: 'primary' },
-  { name: 'Kurukshetra', state: 'Haryana', region: 'primary' },
-  { name: 'Bahadurgarh', state: 'Haryana', region: 'primary' },
-  { name: 'Rewari', state: 'Haryana', region: 'primary' },
-  { name: 'Jind', state: 'Haryana', region: 'primary' },
-  { name: 'Sirsa', state: 'Haryana', region: 'primary' },
+  { name: 'Karnal', state: 'Haryana', region: 'primary' },
 
-  // 6. BIHAR (Primary Hindi State)
+  // 6. BIHAR
   { name: 'Patna', state: 'Bihar', region: 'primary' },
   { name: 'Gaya', state: 'Bihar', region: 'primary' },
   { name: 'Bhagalpur', state: 'Bihar', region: 'primary' },
   { name: 'Muzaffarpur', state: 'Bihar', region: 'primary' },
-  { name: 'Purnia', state: 'Bihar', region: 'primary' },
-  { name: 'Darbhanga', state: 'Bihar', region: 'primary' },
-  { name: 'Bihar Sharif', state: 'Bihar', region: 'primary' },
-  { name: 'Arrah', state: 'Bihar', region: 'primary' },
-  { name: 'Begusarai', state: 'Bihar', region: 'primary' },
-  { name: 'Katihar', state: 'Bihar', region: 'primary' },
-  { name: 'Munger', state: 'Bihar', region: 'primary' },
-  { name: 'Chhapra', state: 'Bihar', region: 'primary' },
-  { name: 'Samastipur', state: 'Bihar', region: 'primary' },
 
-  // 7. UTTARAKHAND (Primary Hindi State)
+  // 7. UTTARAKHAND
   { name: 'Dehradun', state: 'Uttarakhand', region: 'primary' },
   { name: 'Haridwar', state: 'Uttarakhand', region: 'primary' },
+  { name: 'Rishikesh', state: 'Uttarakhand', region: 'primary' },
   { name: 'Roorkee', state: 'Uttarakhand', region: 'primary' },
   { name: 'Haldwani', state: 'Uttarakhand', region: 'primary' },
-  { name: 'Rishikesh', state: 'Uttarakhand', region: 'primary' },
-  { name: 'Rudrapur', state: 'Uttarakhand', region: 'primary' },
-  { name: 'Kashipur', state: 'Uttarakhand', region: 'primary' },
-  { name: 'Nainital', state: 'Uttarakhand', region: 'primary' },
-  { name: 'Almora', state: 'Uttarakhand', region: 'primary' },
 
-  // 8. OTHER (Out of the 7 States - shows in 'Other' and selectable)
-  { name: 'Manipur', state: 'Other', region: 'other' },
-  { name: 'Imphal', state: 'Other', region: 'other' },
+  // 8. OTHER STATES
+  { name: 'Mumbai', state: 'Maharashtra', region: 'other' },
+  { name: 'Pune', state: 'Maharashtra', region: 'other' },
+  { name: 'Nagpur', state: 'Maharashtra', region: 'other' },
+  { name: 'Ahmedabad', state: 'Gujarat', region: 'other' },
+  { name: 'Surat', state: 'Gujarat', region: 'other' },
+  { name: 'Gandhinagar', state: 'Gujarat', region: 'other' },
+  { name: 'Vadodara', state: 'Gujarat', region: 'other' },
+  { name: 'Kolkata', state: 'West Bengal', region: 'other' },
+  { name: 'Bangalore', state: 'Karnataka', region: 'other' },
+  { name: 'Hyderabad', state: 'Telangana', region: 'other' },
+  { name: 'Chennai', state: 'Tamil Nadu', region: 'other' },
+  { name: 'Bhubaneswar', state: 'Odisha', region: 'other' },
+  { name: 'Ranchi', state: 'Jharkhand', region: 'other' },
+  { name: 'Raipur', state: 'Chhattisgarh', region: 'other' },
+  { name: 'Guwahati', state: 'Assam', region: 'other' },
+  { name: 'Imphal', state: 'Manipur', region: 'other' },
+  { name: 'Shillong', state: 'Meghalaya', region: 'other' },
+  { name: 'Shimla', state: 'Himachal Pradesh', region: 'other' },
+  { name: 'Srinagar', state: 'Jammu & Kashmir', region: 'other' },
+  { name: 'Jammu', state: 'Jammu & Kashmir', region: 'other' },
+  { name: 'Goa', state: 'Goa', region: 'other' },
 ];
-
-const PAGE_SIZE = 10;
 
 export const TenderTable: React.FC<TenderTableProps> = ({
   tenders,
@@ -182,37 +194,39 @@ export const TenderTable: React.FC<TenderTableProps> = ({
   order,
   onSortChange,
   isCivilOnly = true,
-  selectedLocation = '',
+  selectedLocation,
   onLocationChange,
+  currentView = 'main',
+  onViewChange,
+  viewCounts,
+  onToggleSpecial,
+  onDeclineTender,
+  onRestoreTender,
+  onPermanentDelete,
+  onUploadDocument,
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  // View mode: 'auto' (cards on mobile, table on desktop), or explicit 'table' / 'cards'
   const [viewMode, setViewMode] = useState<'auto' | 'table' | 'cards'>('auto');
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const PAGE_SIZE = 10;
 
-  // Location Column Filter Dropdown State
+  // Document Upload Modal state for Special Tenders
+  const [documentModalTender, setDocumentModalTender] = useState<TenderListItem | null>(null);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+
+  // Location selector state
   const [isLocationMenuOpen, setIsLocationMenuOpen] = useState<boolean>(false);
   const [locationSearch, setLocationSearch] = useState<string>('');
   const [locationTab, setLocationTab] = useState<'all' | 'primary' | 'other'>('all');
   const [locationCounts, setLocationCounts] = useState<Record<string, number>>({});
-  const locationMenuRef = useRef<HTMLTableCellElement | null>(null);
-  const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const locationMenuRef = useRef<HTMLTableHeaderCellElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch live location tender counts from backend
+  // Close location menu on click outside
   useEffect(() => {
-    fetchLocations().then((locs) => {
-      const counts: Record<string, number> = {};
-      locs.forEach((l) => {
-        counts[l.name] = l.count;
-      });
-      setLocationCounts(counts);
-    });
-  }, []);
-
-  // Handle click outside to close location menu
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (locationMenuRef.current && !locationMenuRef.current.contains(event.target as Node)) {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (locationMenuRef.current && !locationMenuRef.current.contains(e.target as Node)) {
         setIsLocationMenuOpen(false);
       }
     };
@@ -224,97 +238,16 @@ export const TenderTable: React.FC<TenderTableProps> = ({
     };
   }, [isLocationMenuOpen]);
 
-  // Auto-focus search input when dropdown opens
+  // Fetch backend count statistics for locations
   useEffect(() => {
-    if (isLocationMenuOpen) {
-      setTimeout(() => searchInputRef.current?.focus(), 50);
-    }
-  }, [isLocationMenuOpen]);
-
-  // Compute filtered city options based on search query and region tab
-  const filteredCities = useMemo(() => {
-    // 1. Start with base catalog (7 Hindi States)
-    const knownNames = new Set(ALL_CITIES_CATALOG.map((c) => c.name.toLowerCase()));
-    const dynamicList = [...ALL_CITIES_CATALOG];
-
-    // 2. Auto-discover from backend count API
-    Object.keys(locationCounts).forEach((locName) => {
-      if (!knownNames.has(locName.toLowerCase()) && locName.length > 2) {
-        knownNames.add(locName.toLowerCase());
-        dynamicList.push({
-          name: locName,
-          state: 'Other',
-          region: 'other'
-        });
-      }
-    });
-
-    // 3. AUTO-DETECT: Inspect all active tenders in table
-    // If any tender has a city/location not in the list (e.g. Kerala), auto-add into 'Other'!
-    tenders.forEach((t) => {
-      const candidates = [t.location, t.district, t.state].filter(
-        (loc): loc is string => Boolean(loc && loc.trim().length > 1)
-      );
-
-      candidates.forEach((loc) => {
-        const cleanName = loc.trim();
-        const lower = cleanName.toLowerCase();
-        // Ignore generic words
-        if (!knownNames.has(lower) && !['india', 'central', 'all india', 'nit', 'n/a', 'na'].includes(lower)) {
-          knownNames.add(lower);
-          dynamicList.push({
-            name: cleanName,
-            state: 'Other',
-            region: 'other'
-          });
-        }
+    fetchLocations().then((locs) => {
+      const countsMap: Record<string, number> = {};
+      locs.forEach((item) => {
+        countsMap[item.name] = item.count;
       });
+      setLocationCounts(countsMap);
     });
-
-    let list = dynamicList;
-    if (locationTab === 'primary') {
-      list = list.filter((c) => c.region === 'primary');
-    } else if (locationTab === 'other') {
-      list = list.filter((c) => c.region === 'other');
-    }
-
-    if (locationSearch.trim()) {
-      const q = locationSearch.toLowerCase().trim();
-      list = list.filter(
-        (c) =>
-          c.name.toLowerCase().includes(q) ||
-          (c.state && c.state.toLowerCase().includes(q))
-      );
-    }
-
-    // Helper to calculate tender count for any new or existing city
-    const getTenderCount = (cityName: string) => {
-      if (locationCounts[cityName] !== undefined) return locationCounts[cityName];
-      const lower = cityName.toLowerCase();
-      return tenders.filter((t) =>
-        (t.location && t.location.toLowerCase().includes(lower)) ||
-        (t.district && t.district.toLowerCase().includes(lower)) ||
-        (t.state && t.state.toLowerCase().includes(lower))
-      ).length;
-    };
-
-    // Strict Sorting: The 7 Selected Hindi States ALWAYS show at the TOP, 'other' at the bottom
-    return [...list].sort((a, b) => {
-      const aIsPrimary = a.region === 'primary' ? 0 : 1;
-      const bIsPrimary = b.region === 'primary' ? 0 : 1;
-      if (aIsPrimary !== bIsPrimary) return aIsPrimary - bIsPrimary;
-
-      const countA = getTenderCount(a.name);
-      const countB = getTenderCount(b.name);
-      if (countA !== countB) return countB - countA;
-      return a.name.localeCompare(b.name);
-    });
-  }, [locationTab, locationSearch, locationCounts, tenders]);
-
-  // Automatically reset to page 1 when data or sort changes
-  React.useEffect(() => {
-    setCurrentPage(1);
-  }, [tenders, sortBy, order, selectedLocation]);
+  }, []);
 
   const handleCopyAndOpenPortal = useCallback((e: React.MouseEvent, t: TenderListItem) => {
     if (navigator.clipboard) {
@@ -323,6 +256,23 @@ export const TenderTable: React.FC<TenderTableProps> = ({
       setTimeout(() => setCopiedId(null), 3000);
     }
   }, []);
+
+  // Handle Special Tender Document button click
+  const handleDocumentAction = useCallback((e: React.MouseEvent, t: TenderListItem) => {
+    e.stopPropagation();
+    if (t.saved_document_path) {
+      // 1-Click download: file already stored!
+      const downloadUrl = getSpecialDocumentDownloadUrl(t.id);
+      window.open(downloadUrl, '_blank');
+    } else {
+      // Document not saved yet:
+      // 1. Copy tender ID & open official portal in new tab
+      handleCopyAndOpenPortal(e, t);
+      window.open(t.original_url, '_blank');
+      // 2. Open attach document dialog
+      setDocumentModalTender(t);
+    }
+  }, [handleCopyAndOpenPortal]);
 
   // Format numbers into Indian Lakhs and Crores
   const formatIndianCurrency = useCallback((amount?: number | null) => {
@@ -342,30 +292,35 @@ export const TenderTable: React.FC<TenderTableProps> = ({
     if (amount >= 100000) {
       return (
         <span className="amount-val">
-          ₹{(amount / 100000).toFixed(2)} <span className="amount-lakhs">L</span>
+          ₹{(amount / 100000).toFixed(2)} <span className="amount-lakhs">Lakh</span>
         </span>
       );
     }
-    return <span className="amount-val">₹{amount.toLocaleString('en-IN')}</span>;
+    return (
+      <span className="amount-val">
+        ₹{amount.toLocaleString('en-IN')}
+      </span>
+    );
   }, []);
 
-  // Format date and time (e.g. 22-10-2026, 6.30 pm)
   const formatDateTime = useCallback((dateStr?: string) => {
-    if (!dateStr) return { date: 'Refer NIT', time: '' };
+    if (!dateStr) return { date: '-', time: '' };
     try {
       const d = new Date(dateStr);
       if (isNaN(d.getTime())) return { date: dateStr, time: '' };
-      const day = String(d.getDate()).padStart(2, '0');
-      const month = String(d.getMonth() + 1).padStart(2, '0');
+
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const day = d.getDate();
+      const month = months[d.getMonth()];
       const year = d.getFullYear();
-      const date = `${day}-${month}-${year}`;
+      const date = `${day.toString().padStart(2, '0')}-${month}-${year}`;
 
       let hours = d.getHours();
-      const minutes = String(d.getMinutes()).padStart(2, '0');
-      const ampm = hours >= 12 ? 'pm' : 'am';
+      const minutes = d.getMinutes().toString().padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
       hours = hours % 12;
       hours = hours ? hours : 12;
-      const time = `${hours}.${minutes} ${ampm}`;
+      const time = `${hours}:${minutes} ${ampm}`;
 
       return { date, time, full: `${date} ${time}` };
     } catch {
@@ -405,64 +360,25 @@ export const TenderTable: React.FC<TenderTableProps> = ({
     }
   }, []);
 
-  const isListedToday = useCallback((dateStr?: string) => {
-    if (!dateStr) return false;
-    try {
-      // Strictly match today's calendar date (avoid labeling yesterday's tenders as Listed Today)
-      const pubDatePrefix = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr.split(' ')[0];
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const todayPrefix = `${year}-${month}-${day}`;
-
-      if (pubDatePrefix === todayPrefix) {
-        return true;
-      }
-
-      const pub = new Date(dateStr);
-      return (
-        pub.getFullYear() === now.getFullYear() &&
-        pub.getMonth() === now.getMonth() &&
-        pub.getDate() === now.getDate()
-      );
-    } catch {
-      return false;
-    }
-  }, []);
-
-  // Compute rendered items with precomputed flags to ensure 0-lag 60fps rendering
+  // Pre-process items
   const processedTenders = useMemo(() => {
     return tenders.map((t) => ({
       ...t,
-      closingSoon: isClosingSoon(t.bid_submission_deadline),
-      isToday: isListedToday(t.published_date),
       categoryLabel: getCategoryLabel(t.category_id),
       formattedValue: formatIndianCurrency(t.estimated_value),
       formattedEmd: formatIndianCurrency(t.emd_amount),
       formattedPublished: formatDateTime(t.published_date),
       formattedClosing: formatDateTime(t.bid_submission_deadline),
+      closingSoon: isClosingSoon(t.bid_submission_deadline),
     }));
-  }, [tenders, isClosingSoon, isListedToday, getCategoryLabel, formatIndianCurrency, formatDateTime]);
-
-  // Strict chronological sorting: newest published date & time always first (down to the exact minute)
-  const sortedProcessedTenders = useMemo(() => {
-    if (sortBy === 'published_date') {
-      return [...processedTenders].sort((a, b) => {
-        const timeA = a.published_date ? new Date(a.published_date).getTime() : 0;
-        const timeB = b.published_date ? new Date(b.published_date).getTime() : 0;
-        return order === 'desc' ? timeB - timeA : timeA - timeB;
-      });
-    }
-    return processedTenders;
-  }, [processedTenders, sortBy, order]);
+  }, [tenders, getCategoryLabel, formatIndianCurrency, formatDateTime, isClosingSoon]);
 
   // Pagination calculation
-  const totalPages = Math.max(1, Math.ceil(sortedProcessedTenders.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(processedTenders.length / PAGE_SIZE));
   const paginatedTenders = useMemo(() => {
     const startIndex = (currentPage - 1) * PAGE_SIZE;
-    return sortedProcessedTenders.slice(startIndex, startIndex + PAGE_SIZE);
-  }, [sortedProcessedTenders, currentPage]);
+    return processedTenders.slice(startIndex, startIndex + PAGE_SIZE);
+  }, [processedTenders, currentPage]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -471,12 +387,78 @@ export const TenderTable: React.FC<TenderTableProps> = ({
 
   return (
     <div className={`table-container view-mode-${viewMode}`}>
+      {/* 1. THREE ACTION VIEW NAVIGATION TABS */}
+      <div className="tender-view-navigation">
+        <button
+          type="button"
+          className={`tender-nav-tab ${currentView === 'main' ? 'active' : ''}`}
+          onClick={() => onViewChange?.('main')}
+        >
+          <Building size={16} />
+          <span>📋 Main Tenders</span>
+          <span className="nav-tab-badge">{viewCounts?.main ?? 0}</span>
+        </button>
+
+        <button
+          type="button"
+          className={`tender-nav-tab special-nav-tab ${currentView === 'special' ? 'active' : ''}`}
+          onClick={() => onViewChange?.('special')}
+        >
+          <Star size={16} fill={currentView === 'special' ? '#fbbf24' : 'none'} color="#fbbf24" />
+          <span>⭐ Special Tenders (Never Expire)</span>
+          <span className="nav-tab-badge special-badge">{viewCounts?.special ?? 0}</span>
+        </button>
+
+        <button
+          type="button"
+          className={`tender-nav-tab declined-nav-tab ${currentView === 'declined' ? 'active' : ''}`}
+          onClick={() => onViewChange?.('declined')}
+        >
+          <Trash2 size={16} color="#f87171" />
+          <span>🗑️ Declined / Recycle Bin</span>
+          <span className="nav-tab-badge declined-badge">{viewCounts?.declined ?? 0}</span>
+        </button>
+      </div>
+
+      {/* Info Notice Banners for Special & Declined views */}
+      {currentView === 'special' && (
+        <div className="view-info-banner special-info-banner">
+          <Star size={16} color="#fbbf24" fill="#fbbf24" />
+          <span>
+            <strong>Special Tenders are permanently preserved in your database</strong> and will NEVER be auto-deleted.
+            Use <strong>&quot;📄 Document&quot;</strong> to download or store documents for 1-click access.
+          </span>
+        </div>
+      )}
+
+      {currentView === 'declined' && (
+        <div className="view-info-banner declined-info-banner">
+          <Trash2 size={16} color="#f87171" />
+          <span>
+            <strong>Declined Tenders</strong> are hidden from your main list. They remain here until their deadline passes,
+            after which they are <strong>automatically purged from the database</strong>. You can restore or permanently delete them below.
+          </span>
+        </div>
+      )}
+
       {/* Header Bar with View Switcher */}
       <div className="table-header-bar">
         <div className="table-title-group">
           <h2 className="table-title">
-            <Building size={18} color="#6366f1" />
-            <span>{isCivilOnly ? 'Latest Discovered Design & Consultancy Tenders' : 'Latest Discovered Government Tenders (All Categories)'}</span>
+            {currentView === 'special' ? (
+              <Star size={18} color="#fbbf24" fill="#fbbf24" />
+            ) : currentView === 'declined' ? (
+              <Trash2 size={18} color="#f87171" />
+            ) : (
+              <Building size={18} color="#6366f1" />
+            )}
+            <span>
+              {currentView === 'special'
+                ? '⭐ Special Saved Tenders'
+                : currentView === 'declined'
+                ? '🗑️ Declined Tenders (Recycle Bin)'
+                : 'Latest Discovered Design & Consultancy Tenders'}
+            </span>
             <span className="table-count-badge">
               {tenders.length} displayed
             </span>
@@ -514,186 +496,22 @@ export const TenderTable: React.FC<TenderTableProps> = ({
         </div>
       </div>
 
-      {/* 1. DESKTOP / LAPTOP / TABLET TABULAR VIEW */}
+      {/* 2. DESKTOP / LAPTOP / TABLET TABULAR VIEW */}
       <div className="table-wrapper desktop-table-view">
         <table className="tender-table">
           <thead>
             <tr>
+              {/* Checkbox column for Special in Main and Special views */}
+              {currentView !== 'declined' && (
+                <th style={{ textAlign: 'center', width: '56px' }} title="Mark as Special / Important">
+                  ⭐ Special
+                </th>
+              )}
               <th onClick={() => onSortChange('tender_id')}>
                 Tender ID {sortBy === 'tender_id' && (order === 'asc' ? '↑' : '↓')}
               </th>
               <th>Work Details & Authority</th>
-              <th className={`location-header-th ${selectedLocation ? 'is-filtered' : ''}`} ref={locationMenuRef}>
-                <div
-                  className="location-header-btn"
-                  onClick={() => setIsLocationMenuOpen(!isLocationMenuOpen)}
-                  title="Click to filter by Rajasthan or All Indian Cities/States"
-                >
-                  <div className="location-header-text">
-                    <MapPin size={12} className="loc-pin-icon" />
-                    <span>LOCATION</span>
-                  </div>
-                  {selectedLocation ? (
-                    <span
-                      className="location-pill-badge"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onLocationChange?.('');
-                      }}
-                      title={`Active filter: ${selectedLocation}. Click to clear.`}
-                    >
-                      <span className="loc-pill-name">{selectedLocation}</span>
-                      <X size={11} className="loc-pill-x" />
-                    </span>
-                  ) : (
-                    <ChevronDown size={12} className={`loc-chevron ${isLocationMenuOpen ? 'open' : ''}`} />
-                  )}
-                </div>
-
-                {isLocationMenuOpen && (
-                  <div className="location-dropdown-panel" onClick={(e) => e.stopPropagation()}>
-                    {/* Header bar */}
-                    <div className="loc-panel-header">
-                      <div className="loc-panel-title">Filter by City / State</div>
-                      {selectedLocation && (
-                        <button
-                          type="button"
-                          className="loc-panel-clear-btn"
-                          onClick={() => {
-                            onLocationChange?.('');
-                            setIsLocationMenuOpen(false);
-                          }}
-                        >
-                          Clear
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Search box */}
-                    <div className="loc-panel-search">
-                      <Search size={13} className="loc-panel-search-icon" />
-                      <input
-                        ref={searchInputRef}
-                        type="text"
-                        className="loc-panel-search-input"
-                        placeholder="Search city/state (e.g. Jaipur, Delhi, Sawai)..."
-                        value={locationSearch}
-                        onChange={(e) => setLocationSearch(e.target.value)}
-                      />
-                      {locationSearch && (
-                        <button
-                          type="button"
-                          className="loc-panel-search-clear"
-                          onClick={() => setLocationSearch('')}
-                        >
-                          <X size={12} />
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Region Tabs */}
-                    <div className="loc-panel-tabs">
-                      <button
-                        type="button"
-                        className={`loc-tab-btn ${locationTab === 'all' ? 'active' : ''}`}
-                        onClick={() => setLocationTab('all')}
-                      >
-                        All
-                      </button>
-                      <button
-                        type="button"
-                        className={`loc-tab-btn ${locationTab === 'primary' ? 'active' : ''}`}
-                        onClick={() => setLocationTab('primary')}
-                        title="Rajasthan, UP, MP, Haryana, Delhi/NCR, Bihar, Uttarakhand"
-                      >
-                        Selected States (Top)
-                      </button>
-                      <button
-                        type="button"
-                        className={`loc-tab-btn ${locationTab === 'other' ? 'active' : ''}`}
-                        onClick={() => setLocationTab('other')}
-                        title="Other States & Cities"
-                      >
-                        Other
-                      </button>
-                    </div>
-
-                    {/* Items List */}
-                    <div className="loc-panel-list">
-                      {/* Show All Reset Item */}
-                      <div
-                        className={`loc-list-item ${!selectedLocation ? 'selected' : ''}`}
-                        onClick={() => {
-                          onLocationChange?.('');
-                          setIsLocationMenuOpen(false);
-                        }}
-                      >
-                        <span className="loc-list-name">📍 All Locations (Show All)</span>
-                        {!selectedLocation && <Check size={13} className="loc-check-icon" />}
-                      </div>
-
-                      {/* If user typed a search term not in list */}
-                      {locationSearch.trim() && !filteredCities.some(c => c.name.toLowerCase() === locationSearch.trim().toLowerCase()) && (
-                        <div
-                          className="loc-list-item custom-search-item"
-                          onClick={() => {
-                            onLocationChange?.(locationSearch.trim());
-                            setIsLocationMenuOpen(false);
-                          }}
-                        >
-                          <span className="loc-list-name">🔍 Filter tenders matching &quot;<b>{locationSearch.trim()}</b>&quot;</span>
-                        </div>
-                      )}
-
-                      {filteredCities.map((city) => {
-                        const isSelected = selectedLocation?.toLowerCase() === city.name.toLowerCase();
-                        const count = locationCounts[city.name] !== undefined
-                          ? locationCounts[city.name]
-                          : tenders.filter(t =>
-                            (t.location && t.location.toLowerCase().includes(city.name.toLowerCase())) ||
-                            (t.district && t.district.toLowerCase().includes(city.name.toLowerCase())) ||
-                            (t.state && t.state.toLowerCase().includes(city.name.toLowerCase()))
-                          ).length;
-                        const isOther = city.region === 'other';
-                        return (
-                          <div
-                            key={city.name}
-                            className={`loc-list-item ${isSelected ? 'selected' : ''} ${count > 0 ? 'has-tenders' : ''}`}
-                            onClick={() => {
-                              onLocationChange?.(city.name);
-                              setIsLocationMenuOpen(false);
-                            }}
-                          >
-                            <div className="loc-item-info">
-                              {isOther && (
-                                <span style={{ fontSize: '10px', color: '#f59e0b', fontWeight: 700, marginRight: '5px' }}>
-                                  [OTHER]
-                                </span>
-                              )}
-                              <span className="loc-list-name">{city.name}</span>
-                              {city.state && <span className="loc-list-state">({city.state})</span>}
-                            </div>
-                            <div className="loc-item-meta">
-                              {count > 0 && (
-                                <span className="loc-tender-count-badge">
-                                  {count} {count === 1 ? 'tender' : 'tenders'}
-                                </span>
-                              )}
-                              {isSelected && <Check size={13} className="loc-check-icon" />}
-                            </div>
-                          </div>
-                        );
-                      })}
-
-                      {filteredCities.length === 0 && (
-                        <div className="loc-empty-hint">
-                          No pre-catalogued city found. Click above to search &quot;{locationSearch}&quot;.
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </th>
+              <th>Location</th>
               <th>Category</th>
               <th onClick={() => onSortChange('estimated_value')} style={{ textAlign: 'right' }}>
                 Value (INR) {sortBy === 'estimated_value' && (order === 'asc' ? '↑' : '↓')}
@@ -712,19 +530,44 @@ export const TenderTable: React.FC<TenderTableProps> = ({
           <tbody>
             {isLoading && tenders.length === 0 ? (
               <tr>
-                <td colSpan={10} className="table-empty-cell">
+                <td colSpan={11} className="table-empty-cell">
                   Loading latest tenders from intelligence registry...
                 </td>
               </tr>
             ) : tenders.length === 0 ? (
               <tr>
-                <td colSpan={10} className="table-empty-cell">
-                  No tenders match the specified filters. Try adjusting your search criteria.
+                <td colSpan={11} className="table-empty-cell">
+                  {currentView === 'special'
+                    ? '⭐ No Special Tenders saved yet. Click the ⭐ star on any tender to save it here forever!'
+                    : currentView === 'declined'
+                    ? '🗑️ No declined tenders. Tenders declined will appear here until auto-deleted on expiry.'
+                    : 'No tenders match the specified filters. Try adjusting your search criteria.'}
                 </td>
               </tr>
             ) : (
               paginatedTenders.map((t) => (
                 <tr key={t.id} className={t.isNewArrival ? 'new-arrival' : ''}>
+                  {/* Checkbox column for Special in Main and Special views */}
+                  {currentView !== 'declined' && (
+                    <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                      <button
+                        type="button"
+                        className={`star-checkbox-btn ${t.is_special ? 'is-active' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleSpecial?.(t);
+                        }}
+                        title={t.is_special ? 'Remove from Special Tenders' : '⭐ Save to Special Tenders (Never Expire)'}
+                      >
+                        <Star
+                          size={18}
+                          color={t.is_special ? '#fbbf24' : '#64748b'}
+                          fill={t.is_special ? '#fbbf24' : 'none'}
+                        />
+                      </button>
+                    </td>
+                  )}
+
                   {/* Tender ID */}
                   <td style={{ whiteSpace: 'nowrap' }}>
                     <div className="tender-id-text">{t.tender_id}</div>
@@ -758,45 +601,35 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                   </td>
 
                   {/* Category */}
-                  <td>
+                  <td style={{ whiteSpace: 'nowrap' }}>
                     <span className="badge badge-civil">
                       {t.categoryLabel}
                     </span>
-                    {t.matched_keywords && (
-                      <div style={{ fontSize: '11px', color: '#818cf8', marginTop: '4px', fontWeight: 500, maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={`Matched Keywords: ${t.matched_keywords}`}>
-                        🎯 {t.matched_keywords}
-                      </div>
-                    )}
                   </td>
 
-                  {/* Estimated Value */}
+                  {/* Value */}
                   <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                     {t.formattedValue}
                   </td>
 
                   {/* EMD */}
-                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap', color: '#cbd5e1' }}>
+                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                     {t.formattedEmd}
                   </td>
 
                   {/* Published Date */}
-                  <td style={{ whiteSpace: 'nowrap', fontSize: '12px' }}>
-                    <div className="datetime-wrapper">
+                  <td style={{ whiteSpace: 'nowrap' }}>
+                    <div className="datetime-display">
                       <span className="datetime-date">{t.formattedPublished.date}</span>
                       {t.formattedPublished.time && (
                         <span className="datetime-time">{t.formattedPublished.time}</span>
                       )}
                     </div>
-                    {t.isToday && (
-                      <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.4)', marginTop: '3px', fontSize: '10px', padding: '1px 5px', display: 'inline-block' }}>
-                        🔥 Listed Today
-                      </span>
-                    )}
                   </td>
 
                   {/* Closing Date */}
                   <td style={{ whiteSpace: 'nowrap' }}>
-                    <div className="datetime-wrapper">
+                    <div className="datetime-display">
                       <span className="datetime-date" style={{ color: t.closingSoon ? '#fbbf24' : '#e2e8f0', fontWeight: t.closingSoon ? 600 : 400 }}>
                         {t.formattedClosing.date}
                       </span>
@@ -813,37 +646,106 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                     )}
                   </td>
 
-                  {/* Status: Shows only the real status (Active or Amended) */}
+                  {/* Status */}
                   <td style={{ whiteSpace: 'nowrap' }}>
-                    {t.status === 'AMENDED' ? (
+                    {t.status === 'DECLINED' ? (
+                      <span className="badge badge-declined" style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.4)' }}>
+                        Declined
+                      </span>
+                    ) : t.status === 'AMENDED' ? (
                       <span className="badge badge-amended">Amended</span>
                     ) : (
                       <span className="badge badge-civil">Active</span>
                     )}
                   </td>
 
-                  {/* Action Buttons */}
+                  {/* Action Buttons depending on current view */}
                   <td style={{ whiteSpace: 'nowrap', textAlign: 'center' }}>
                     <div className="table-actions-cell">
-                      <button
-                        className="btn btn-outline btn-table-action"
-                        onClick={() => onSelectTender(t)}
-                        title="Inspect tender specifications & documents"
-                      >
-                        <Eye size={13} />
-                        <span>Inspect</span>
-                      </button>
-                      <a
-                        href={t.original_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => handleCopyAndOpenPortal(e, t)}
-                        className={`btn btn-outline btn-table-action ${copiedId === t.id ? 'btn-copied' : ''}`}
-                        title={copiedId === t.id ? `Tender ID copied!` : `Copy Tender ID and open ${t.portal_name}`}
-                      >
-                        {copiedId === t.id ? <Check size={13} color="#34d399" /> : <ExternalLink size={13} />}
-                        <span>{copiedId === t.id ? 'Copied ID' : 'Portal'}</span>
-                      </a>
+                      {currentView === 'main' && (
+                        <>
+                          <button
+                            className="btn btn-outline btn-table-action"
+                            onClick={() => onSelectTender(t)}
+                            title="Inspect tender specifications & documents"
+                          >
+                            <Eye size={13} />
+                            <span>Inspect</span>
+                          </button>
+                          <a
+                            href={t.original_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => handleCopyAndOpenPortal(e, t)}
+                            className={`btn btn-outline btn-table-action ${copiedId === t.id ? 'btn-copied' : ''}`}
+                            title={copiedId === t.id ? `Tender ID copied!` : `Copy Tender ID and open ${t.portal_name}`}
+                          >
+                            {copiedId === t.id ? <Check size={13} color="#34d399" /> : <ExternalLink size={13} />}
+                            <span>{copiedId === t.id ? 'Copied ID' : 'Portal'}</span>
+                          </a>
+                          <button
+                            className="btn btn-outline btn-table-action btn-action-decline"
+                            onClick={() => onDeclineTender?.(t)}
+                            title="Decline this tender (Moves to Declined / Recycle Bin)"
+                          >
+                            <Trash2 size={13} color="#f87171" />
+                            <span>Decline</span>
+                          </button>
+                        </>
+                      )}
+
+                      {currentView === 'special' && (
+                        <>
+                          <button
+                            className="btn btn-outline btn-table-action"
+                            onClick={() => onSelectTender(t)}
+                            title="Inspect tender specifications"
+                          >
+                            <Eye size={13} />
+                            <span>Inspect</span>
+                          </button>
+                          <button
+                            className={`btn btn-outline btn-table-action btn-action-doc ${t.saved_document_path ? 'has-saved-doc' : ''}`}
+                            onClick={(e) => handleDocumentAction(e, t)}
+                            title={t.saved_document_path ? '1-Click Download Stored Tender Document' : 'Open portal & attach document for 1-click download'}
+                          >
+                            {t.saved_document_path ? <Download size={13} color="#34d399" /> : <FileText size={13} color="#38bdf8" />}
+                            <span>{t.saved_document_path ? '📄 Download' : '📄 Document'}</span>
+                          </button>
+                          <a
+                            href={t.original_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => handleCopyAndOpenPortal(e, t)}
+                            className={`btn btn-outline btn-table-action ${copiedId === t.id ? 'btn-copied' : ''}`}
+                            title={`Open portal ${t.portal_name}`}
+                          >
+                            <ExternalLink size={13} />
+                            <span>Portal</span>
+                          </a>
+                        </>
+                      )}
+
+                      {currentView === 'declined' && (
+                        <>
+                          <button
+                            className="btn btn-outline btn-table-action btn-action-restore"
+                            onClick={() => onRestoreTender?.(t)}
+                            title="Restore back to Main Tenders list"
+                          >
+                            <RotateCcw size={13} color="#34d399" />
+                            <span>Restore</span>
+                          </button>
+                          <button
+                            className="btn btn-outline btn-table-action btn-action-permanent-delete"
+                            onClick={() => onPermanentDelete?.(t)}
+                            title="Permanently delete tender from database forever"
+                          >
+                            <XCircle size={13} color="#ef4444" />
+                            <span>Delete Forever</span>
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -853,7 +755,7 @@ export const TenderTable: React.FC<TenderTableProps> = ({
         </table>
       </div>
 
-      {/* 2. MOBILE / TOUCH-OPTIMIZED CARD VIEW */}
+      {/* 3. MOBILE / TOUCH-OPTIMIZED CARD VIEW */}
       <div className="mobile-cards-view">
         {isLoading && tenders.length === 0 ? (
           <div className="table-empty-cell">
@@ -861,7 +763,11 @@ export const TenderTable: React.FC<TenderTableProps> = ({
           </div>
         ) : tenders.length === 0 ? (
           <div className="table-empty-cell">
-            No tenders match the specified filters. Try adjusting your search criteria.
+            {currentView === 'special'
+              ? '⭐ No Special Tenders saved yet.'
+              : currentView === 'declined'
+              ? '🗑️ No declined tenders.'
+              : 'No tenders match the specified filters.'}
           </div>
         ) : (
           <div className="tender-cards-grid">
@@ -876,14 +782,13 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                     <span className="badge badge-civil">
                       {t.categoryLabel}
                     </span>
-                    {t.isToday && (
-                      <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.4)' }}>
-                        🔥 Listed Today
+                    {t.status === 'DECLINED' && (
+                      <span className="badge badge-declined" style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#f87171' }}>
+                        Declined
                       </span>
                     )}
                     {t.status === 'AMENDED' && <span className="badge badge-amended">Amended</span>}
                     {t.closingSoon && <span className="badge badge-closing-soon">Closing Soon</span>}
-
                   </div>
                   <div className="mobile-card-id">{t.tender_id}</div>
                 </div>
@@ -923,23 +828,78 @@ export const TenderTable: React.FC<TenderTableProps> = ({
 
                 {/* Card Action Buttons */}
                 <div className="mobile-card-actions">
-                  <button
-                    className="btn btn-primary mobile-action-btn"
-                    onClick={() => onSelectTender(t)}
-                  >
-                    <Eye size={14} />
-                    <span>Inspect Details</span>
-                  </button>
-                  <a
-                    href={t.original_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => handleCopyAndOpenPortal(e, t)}
-                    className={`btn btn-outline mobile-action-btn ${copiedId === t.id ? 'btn-copied' : ''}`}
-                  >
-                    {copiedId === t.id ? <Check size={14} color="#34d399" /> : <ExternalLink size={14} />}
-                    <span>{copiedId === t.id ? 'Copied ID' : 'Open Portal'}</span>
-                  </a>
+                  {currentView === 'main' && (
+                    <>
+                      <button
+                        className="btn btn-primary mobile-action-btn"
+                        onClick={() => onSelectTender(t)}
+                      >
+                        <Eye size={14} />
+                        <span>Inspect</span>
+                      </button>
+                      <button
+                        className="btn btn-outline mobile-action-btn"
+                        onClick={() => onToggleSpecial?.(t)}
+                        title="Save to Special Tenders"
+                      >
+                        <Star size={14} color="#fbbf24" />
+                        <span>Save Special</span>
+                      </button>
+                      <button
+                        className="btn btn-outline mobile-action-btn btn-action-decline"
+                        onClick={() => onDeclineTender?.(t)}
+                      >
+                        <Trash2 size={14} color="#f87171" />
+                        <span>Decline</span>
+                      </button>
+                    </>
+                  )}
+
+                  {currentView === 'special' && (
+                    <>
+                      <button
+                        className="btn btn-primary mobile-action-btn"
+                        onClick={() => onSelectTender(t)}
+                      >
+                        <Eye size={14} />
+                        <span>Inspect</span>
+                      </button>
+                      <button
+                        className={`btn btn-outline mobile-action-btn ${t.saved_document_path ? 'has-saved-doc' : ''}`}
+                        onClick={(e) => handleDocumentAction(e, t)}
+                      >
+                        {t.saved_document_path ? <Download size={14} color="#34d399" /> : <FileText size={14} color="#38bdf8" />}
+                        <span>{t.saved_document_path ? 'Download' : 'Document'}</span>
+                      </button>
+                      <button
+                        className="btn btn-outline mobile-action-btn"
+                        onClick={() => onToggleSpecial?.(t)}
+                        title="Remove from Special Tenders"
+                      >
+                        <Star size={14} color="#fbbf24" fill="#fbbf24" />
+                        <span>Remove</span>
+                      </button>
+                    </>
+                  )}
+
+                  {currentView === 'declined' && (
+                    <>
+                      <button
+                        className="btn btn-outline mobile-action-btn btn-action-restore"
+                        onClick={() => onRestoreTender?.(t)}
+                      >
+                        <RotateCcw size={14} color="#34d399" />
+                        <span>Restore to Main</span>
+                      </button>
+                      <button
+                        className="btn btn-outline mobile-action-btn btn-action-permanent-delete"
+                        onClick={() => onPermanentDelete?.(t)}
+                      >
+                        <XCircle size={14} color="#ef4444" />
+                        <span>Delete Forever</span>
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             ))}
@@ -947,11 +907,11 @@ export const TenderTable: React.FC<TenderTableProps> = ({
         )}
       </div>
 
-      {/* 3. TABLE PAGINATION BAR (10 rows per page, 1 2 3 4 5 buttons, max 100 tenders) */}
+      {/* 4. TABLE PAGINATION BAR (10 rows per page) */}
       {processedTenders.length > 0 && (
         <div className="table-pagination-bar">
           <div className="pagination-info">
-            Showing <span className="pagination-highlight">{(currentPage - 1) * PAGE_SIZE + 1}</span> to <span className="pagination-highlight">{Math.min(currentPage * PAGE_SIZE, processedTenders.length)}</span> of <span className="pagination-highlight">{processedTenders.length}</span> latest design tenders (Max 100)
+            Showing <span className="pagination-highlight">{(currentPage - 1) * PAGE_SIZE + 1}</span> to <span className="pagination-highlight">{Math.min(currentPage * PAGE_SIZE, processedTenders.length)}</span> of <span className="pagination-highlight">{processedTenders.length}</span> {currentView === 'special' ? 'special tenders' : currentView === 'declined' ? 'declined tenders' : 'design tenders'}
           </div>
           <div className="pagination-controls">
             <button
@@ -982,6 +942,117 @@ export const TenderTable: React.FC<TenderTableProps> = ({
             >
               Next →
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 5. ATTACH TENDER DOCUMENT MODAL (For Special Tenders) */}
+      {documentModalTender && (
+        <div className="modal-backdrop" onClick={() => setDocumentModalTender(null)}>
+          <div className="modal-content doc-upload-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title-group" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <FileText size={20} color="#38bdf8" />
+                <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Attach Tender Document</h3>
+              </div>
+              <button
+                type="button"
+                className="modal-close-btn"
+                onClick={() => setDocumentModalTender(null)}
+                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="modal-body doc-upload-body" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="doc-tender-info" style={{ background: 'rgba(30, 41, 59, 0.7)', padding: '0.85rem', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                <div style={{ color: '#38bdf8', fontWeight: 600, fontSize: '0.85rem' }}>{documentModalTender.tender_id}</div>
+                <div style={{ color: '#e2e8f0', fontSize: '0.9rem', marginTop: '4px', lineHeight: 1.4 }}>{documentModalTender.title}</div>
+              </div>
+
+              <div className="doc-instructions-box" style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '0.85rem', borderRadius: '8px', borderLeft: '3px solid #6366f1', fontSize: '0.82rem', color: '#cbd5e1' }}>
+                <p style={{ margin: '0 0 6px 0' }}>
+                  <strong>Step 1:</strong> The official portal has just been opened in your browser. Solve the captcha on that portal and download the tender file (PDF or ZIP).
+                </p>
+                <p style={{ margin: 0 }}>
+                  <strong>Step 2:</strong> Select that downloaded file below. It will be permanently stored on your server, and all future clicks on &quot;Document&quot; will download it directly with 1-click without any captcha!
+                </p>
+              </div>
+
+              <div
+                className="doc-upload-dropzone"
+                style={{
+                  border: '2px dashed rgba(99, 102, 241, 0.4)',
+                  borderRadius: '10px',
+                  padding: '1.5rem',
+                  textAlign: 'center',
+                  background: 'rgba(15, 23, 42, 0.4)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: 'pointer'
+                }}
+              >
+                <UploadCloud size={36} color="#818cf8" />
+                <label className="doc-file-select-label" style={{ cursor: 'pointer' }}>
+                  <span style={{ color: '#38bdf8', fontWeight: 500, fontSize: '0.9rem' }}>
+                    {uploadFile ? uploadFile.name : 'Click here to choose downloaded tender document (PDF, ZIP)'}
+                  </span>
+                  <input
+                    type="file"
+                    accept=".pdf,.zip,.rar,.docx"
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setUploadFile(e.target.files[0]);
+                      }
+                    }}
+                  />
+                </label>
+                {uploadFile && (
+                  <div style={{ color: '#34d399', fontSize: '0.8rem', fontWeight: 600 }}>
+                    Selected: {(uploadFile.size / (1024 * 1024)).toFixed(2)} MB
+                  </div>
+                )}
+              </div>
+
+              <div className="doc-modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '0.5rem' }}>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={() => {
+                    setDocumentModalTender(null);
+                    setUploadFile(null);
+                  }}
+                  style={{ padding: '0.5rem 1rem' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={!uploadFile || isUploading}
+                  onClick={async () => {
+                    if (!uploadFile || !onUploadDocument || !documentModalTender) return;
+                    setIsUploading(true);
+                    try {
+                      await onUploadDocument(documentModalTender, uploadFile);
+                      setDocumentModalTender(null);
+                      setUploadFile(null);
+                    } catch (err) {
+                      console.error(err);
+                    } finally {
+                      setIsUploading(false);
+                    }
+                  }}
+                  style={{ padding: '0.5rem 1.25rem', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: '6px', cursor: !uploadFile ? 'not-allowed' : 'pointer', opacity: !uploadFile ? 0.6 : 1 }}
+                >
+                  {isUploading ? 'Saving Document...' : 'Save Document to Portal'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

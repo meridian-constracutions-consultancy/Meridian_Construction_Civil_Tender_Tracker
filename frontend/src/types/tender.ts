@@ -56,7 +56,10 @@ export interface TenderListItem {
   is_joint_venture_allowed?: boolean;
   bidding_type?: string;
   
-  status: string; // ACTIVE, AMENDED, CLOSED
+  status: string; // ACTIVE, AMENDED, CLOSED, DECLINED
+  is_special?: boolean;
+  saved_document_path?: string | null;
+  saved_document_name?: string | null;
   created_at: string;
   isNewArrival?: boolean; // UI highlight flag for SSE arrivals
 }
@@ -86,6 +89,9 @@ export interface TenderListResponse {
   closing_soon_count: number;
   today_count?: number;
   under_15_days_count?: number;
+  main_count?: number;
+  special_count?: number;
+  declined_count?: number;
   limit: number;
   offset: number;
   items: TenderListItem[];
@@ -113,6 +119,7 @@ export interface LocationItem {
 }
 
 export interface FilterState {
+  view?: 'main' | 'special' | 'declined';
   search: string;
   is_civil_only: boolean;
   category_id: string;

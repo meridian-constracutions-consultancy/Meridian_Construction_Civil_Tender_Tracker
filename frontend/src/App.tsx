@@ -7,7 +7,16 @@ import { TenderDetailModal } from './components/TenderDetailModal';
 import { KeywordsModal } from './components/KeywordsModal';
 import { SourcesHealth } from './components/SourcesHealth';
 import { TenderListItem, SourceRead, FilterState } from './types/tender';
-import { fetchTenders, fetchSources, syncAllSources } from './api/client';
+import {
+  fetchTenders,
+  fetchSources,
+  syncAllSources,
+  toggleSpecialTender,
+  declineTender,
+  restoreTender,
+  deletePermanentTender,
+  uploadSpecialDocument
+} from './api/client';
 import { SSEClient, SSEConnectionStatus } from './api/sse';
 
 export const App: React.FC = () => {
@@ -21,6 +30,14 @@ export const App: React.FC = () => {
   const [isKeywordsModalOpen, setIsKeywordsModalOpen] = useState<boolean>(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
+  // 3-View Lifecycle: 'main' | 'special' | 'declined'
+  const [currentView, setCurrentView] = useState<'main' | 'special' | 'declined'>('main');
+  const [viewCounts, setViewCounts] = useState({
+    main: 0,
+    special: 0,
+    declined: 0,
+  });
+
   const [stats, setStats] = useState({
     totalCount: 0,
     civilCount: 0,
@@ -29,6 +46,7 @@ export const App: React.FC = () => {
   });
 
   const [filters, setFilters] = useState<FilterState>({
+    view: 'main',
     search: '',
     is_civil_only: true,
     category_id: '',
@@ -55,13 +73,18 @@ export const App: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const response = await fetchTenders(filters, 100, 0, controller.signal);
+      const response = await fetchTenders({ ...filters, view: currentView }, 100, 0, controller.signal);
       setTenders(response.items);
       setStats({
         totalCount: response.total_count,
         civilCount: response.civil_count,
         closingSoonCount: response.closing_soon_count,
         todayCount: response.today_count || 0,
+      });
+      setViewCounts({
+        main: response.main_count || 0,
+        special: response.special_count || 0,
+        declined: response.declined_count || 0,
       });
       setLastUpdated(new Date());
     } catch (err: any) {
@@ -71,7 +94,7 @@ export const App: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [filters]);
+  }, [filters, currentView]);
 
   // Comprehensive manual refresh: scans live portals, adds new tenders, and updates table
   const handleManualRefresh = useCallback(async () => {
@@ -88,7 +111,7 @@ export const App: React.FC = () => {
 
       // 2. Fetch fresh records from database (including newly discovered tenders)
       const [tendersRes, sourcesRes] = await Promise.all([
-        fetchTenders(filters, 100, 0),
+        fetchTenders({ ...filters, view: currentView }, 100, 0),
         fetchSources(),
       ]);
 
@@ -98,6 +121,11 @@ export const App: React.FC = () => {
         civilCount: tendersRes.civil_count,
         closingSoonCount: tendersRes.closing_soon_count,
         todayCount: tendersRes.today_count || 0,
+      });
+      setViewCounts({
+        main: tendersRes.main_count || 0,
+        special: tendersRes.special_count || 0,
+        declined: tendersRes.declined_count || 0,
       });
       setSources(sourcesRes);
 
@@ -113,8 +141,7 @@ export const App: React.FC = () => {
     } finally {
       setIsRefreshing(false);
     }
-  }, [filters, loadTenders]);
-
+  }, [filters, currentView, loadTenders]);
 
   const loadSources = useCallback(async () => {
     try {
@@ -142,7 +169,6 @@ export const App: React.FC = () => {
     return () => clearInterval(autoRefreshTimer);
   }, [handleManualRefresh]);
 
-
   // Set up Server-Sent Events (SSE) for live streaming updates
   useEffect(() => {
     const sse = new SSEClient({
@@ -150,23 +176,21 @@ export const App: React.FC = () => {
         setSseStatus(status);
       },
       onNewTender: (newTender) => {
-        // Check if tender satisfies civil filter
         if (filters.is_civil_only && !newTender.is_civil_construction) {
           return;
         }
 
-        // Prepend new tender at the top with arrival highlight animation
-        setTenders((prev) => {
-          // Check if already in list
-          if (prev.some((t) => t.id === newTender.id || t.tender_id === newTender.tender_id)) {
-            return prev;
-          }
-          const itemWithHighlight = { ...newTender, isNewArrival: true };
-          // Keep maximum 100 records in the live dashboard
-          return [itemWithHighlight, ...prev.slice(0, 99)];
-        });
+        // Only prepend to main view if not marked special or declined
+        if (currentView === 'main' && !newTender.is_special && newTender.status !== 'DECLINED') {
+          setTenders((prev) => {
+            if (prev.some((t) => t.id === newTender.id || t.tender_id === newTender.tender_id)) {
+              return prev;
+            }
+            const itemWithHighlight = { ...newTender, isNewArrival: true };
+            return [itemWithHighlight, ...prev.slice(0, 99)];
+          });
+        }
 
-        // Update stats
         setStats((prev) => ({
           ...prev,
           totalCount: prev.totalCount + 1,
@@ -182,7 +206,6 @@ export const App: React.FC = () => {
         setSources((prev) =>
           prev.map((s) => (s.id === statusPayload.source_id ? { ...s, health_status: statusPayload.status } : s))
         );
-        // Automatically re-query table and sources when collector completes or finds new tenders
         if (statusPayload.status === 'HEALTHY' || (statusPayload.tenders_discovered && statusPayload.tenders_discovered > 0)) {
           loadTenders();
           loadSources();
@@ -196,7 +219,7 @@ export const App: React.FC = () => {
     return () => {
       sse.disconnect();
     };
-  }, [filters.is_civil_only]);
+  }, [filters.is_civil_only, currentView, loadTenders, loadSources]);
 
   const handleFilterChange = (newFilters: Partial<FilterState>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
@@ -204,6 +227,7 @@ export const App: React.FC = () => {
 
   const handleResetFilters = () => {
     setFilters({
+      view: currentView,
       search: '',
       is_civil_only: true,
       category_id: '',
@@ -227,6 +251,92 @@ export const App: React.FC = () => {
     });
   };
 
+  // View switcher: 'main' | 'special' | 'declined'
+  const handleViewChange = (view: 'main' | 'special' | 'declined') => {
+    setCurrentView(view);
+    setFilters((prev) => ({ ...prev, view }));
+  };
+
+  // ACTION 1: Special / Important Tenders Toggle
+  const handleToggleSpecial = async (tender: TenderListItem) => {
+    try {
+      const res = await toggleSpecialTender(tender.id);
+      const isNowSpecial = res.is_special;
+      const msg = isNowSpecial
+        ? `⭐ Moved tender "${tender.tender_id}" to Special Tenders list! It will never be deleted.`
+        : `Removed tender "${tender.tender_id}" from Special Tenders.`;
+      setRefreshToast(msg);
+      setTimeout(() => setRefreshToast(null), 4000);
+      await loadTenders();
+    } catch (err) {
+      console.error('Error toggling special tender:', err);
+      setRefreshToast('Error updating special status.');
+      setTimeout(() => setRefreshToast(null), 3000);
+    }
+  };
+
+  // ACTION 2: Decline Tender (Move to Declined list)
+  const handleDeclineTender = async (tender: TenderListItem) => {
+    try {
+      await declineTender(tender.id);
+      setRefreshToast(`🗑️ Moved "${tender.tender_id}" to Declined list.`);
+      setTimeout(() => setRefreshToast(null), 4000);
+      await loadTenders();
+    } catch (err) {
+      console.error('Error declining tender:', err);
+      setRefreshToast('Error declining tender.');
+      setTimeout(() => setRefreshToast(null), 3000);
+    }
+  };
+
+  // ACTION 3A: Restore Tender (Move back to Main list)
+  const handleRestoreTender = async (tender: TenderListItem) => {
+    try {
+      await restoreTender(tender.id);
+      setRefreshToast(`♻️ Restored "${tender.tender_id}" to Main Tenders list.`);
+      setTimeout(() => setRefreshToast(null), 4000);
+      await loadTenders();
+    } catch (err) {
+      console.error('Error restoring tender:', err);
+      setRefreshToast('Error restoring tender.');
+      setTimeout(() => setRefreshToast(null), 3000);
+    }
+  };
+
+  // ACTION 3B: Permanent Delete Tender from Database
+  const handlePermanentDelete = async (tender: TenderListItem) => {
+    const confirmed = window.confirm(
+      `Permanently delete tender "${tender.tender_id}"?\n\nThis will purge it from the database completely and cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    try {
+      await deletePermanentTender(tender.id);
+      setRefreshToast(`❌ Permanently erased "${tender.tender_id}" from database.`);
+      setTimeout(() => setRefreshToast(null), 4000);
+      await loadTenders();
+    } catch (err) {
+      console.error('Error permanently deleting tender:', err);
+      setRefreshToast('Error deleting tender.');
+      setTimeout(() => setRefreshToast(null), 3000);
+    }
+  };
+
+  // ACTION 1 Document Helper: Upload downloaded document for Special Tender
+  const handleUploadDocument = async (tender: TenderListItem, file: File) => {
+    try {
+      await uploadSpecialDocument(tender.id, file);
+      setRefreshToast(`✓ Document saved for tender "${tender.tender_id}"! 1-Click download is now active.`);
+      setTimeout(() => setRefreshToast(null), 4000);
+      await loadTenders();
+    } catch (err) {
+      console.error('Error uploading document:', err);
+      setRefreshToast('Failed to save tender document.');
+      setTimeout(() => setRefreshToast(null), 3000);
+      throw err;
+    }
+  };
+
   return (
     <div className="app-container">
       {/* Header with live SSE status & Keywords Settings */}
@@ -237,7 +347,6 @@ export const App: React.FC = () => {
         isRefreshing={isRefreshing}
         onOpenSettings={() => setIsKeywordsModalOpen(true)}
       />
-
 
       {/* Live Data Refresh Notification Toast */}
       {refreshToast && (
@@ -285,7 +394,7 @@ export const App: React.FC = () => {
         onReset={handleResetFilters}
       />
 
-      {/* Main Latest 50 Tenders Table */}
+      {/* Main Table with View Tabs: Main, Special, Declined */}
       <TenderTable
         tenders={tenders}
         isLoading={isLoading}
@@ -296,6 +405,14 @@ export const App: React.FC = () => {
         isCivilOnly={filters.is_civil_only}
         selectedLocation={filters.location}
         onLocationChange={(loc) => handleFilterChange({ location: loc })}
+        currentView={currentView}
+        onViewChange={handleViewChange}
+        viewCounts={viewCounts}
+        onToggleSpecial={handleToggleSpecial}
+        onDeclineTender={handleDeclineTender}
+        onRestoreTender={handleRestoreTender}
+        onPermanentDelete={handlePermanentDelete}
+        onUploadDocument={handleUploadDocument}
       />
 
       {/* Source Monitoring & Health Status */}
@@ -326,4 +443,3 @@ export const App: React.FC = () => {
     </div>
   );
 };
-

@@ -233,144 +233,17 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           </button>
 
           <button
-            className={`toggle-filter-chip ${filters.listed_today ? 'active' : ''}`}
-            onClick={() => onFilterChange({ listed_today: !filters.listed_today })}
-          >
-            <span>🔥 Listed Today</span>
-          </button>
-
-          <button
             className={`toggle-filter-chip ${filters.under_15_days ? 'active' : ''}`}
             onClick={() => onFilterChange({ under_15_days: !filters.under_15_days })}
           >
             <span>📅 Under 15 Days</span>
           </button>
 
-          {/* Quick Location Chips */}
-          <button
-            className={`toggle-filter-chip ${filters.location === 'Jaipur' ? 'active' : ''}`}
-            onClick={() => onFilterChange({ location: filters.location === 'Jaipur' ? '' : 'Jaipur' })}
-            title="Show tenders in Jaipur"
-          >
-            <span>📍 Jaipur</span>
-          </button>
-
-          <button
-            className={`toggle-filter-chip ${filters.location === 'Delhi' ? 'active' : ''}`}
-            onClick={() => onFilterChange({ location: filters.location === 'Delhi' ? '' : 'Delhi' })}
-            title="Show tenders in Delhi"
-          >
-            <span>📍 Delhi</span>
-          </button>
-
-          <button
-            className={`toggle-filter-chip ${filters.location === 'Sawai Madhopur' ? 'active' : ''}`}
-            onClick={() => onFilterChange({ location: filters.location === 'Sawai Madhopur' ? '' : 'Sawai Madhopur' })}
-            title="Show tenders in Sawai Madhopur"
-          >
-            <span>📍 Sawai Madhopur</span>
-          </button>
-
-          {filters.location && !['Jaipur', 'Delhi', 'Sawai Madhopur'].includes(filters.location) && (
-            <button
-              className="toggle-filter-chip active"
-              onClick={() => onFilterChange({ location: '' })}
-              title="Click to clear location filter"
-            >
-              <span>📍 {filters.location} ✕</span>
-            </button>
-          )}
-
-
           <button
             className={`toggle-filter-chip ${filters.closing_soon ? 'active' : ''}`}
             onClick={() => onFilterChange({ closing_soon: !filters.closing_soon })}
           >
             <span>⏰ Closing in 7 Days</span>
-          </button>
-
-          <button
-            className={`toggle-filter-chip ${filters.jv_allowed ? 'active' : ''}`}
-            onClick={() => onFilterChange({ jv_allowed: !filters.jv_allowed })}
-          >
-            <span>🤝 JV Allowed</span>
-          </button>
-
-          <button
-            className={`toggle-filter-chip ${filters.has_pre_bid ? 'active' : ''}`}
-            onClick={() => onFilterChange({ has_pre_bid: !filters.has_pre_bid })}
-          >
-            <span>📅 Pre-Bid Active</span>
-          </button>
-
-          <button
-            className={`toggle-filter-chip ${filters.category_id === 'bridges_flyovers' ? 'active' : ''}`}
-            onClick={() => onFilterChange({ category_id: filters.category_id === 'bridges_flyovers' ? '' : 'bridges_flyovers' })}
-          >
-            <span>🌉 ROB & Bridges</span>
-          </button>
-
-          <button
-            className={`toggle-filter-chip ${filters.category_id === 'metro_railways' ? 'active' : ''}`}
-            onClick={() => onFilterChange({ category_id: filters.category_id === 'metro_railways' ? '' : 'metro_railways' })}
-          >
-            <span>🚇 Metro & Railways (JMRC/IRCON/DFCCIL)</span>
-          </button>
-
-          <button
-            className={`toggle-filter-chip ${filters.category_id === 'structural_engineering' ? 'active' : ''}`}
-            onClick={() => onFilterChange({ category_id: filters.category_id === 'structural_engineering' ? '' : 'structural_engineering' })}
-          >
-            <span>🏛️ Architecture & Structure Design</span>
-          </button>
-
-          <button
-            className={`toggle-filter-chip ${filters.category_id === 'water_supply_drainage' ? 'active' : ''}`}
-            onClick={() => onFilterChange({ category_id: filters.category_id === 'water_supply_drainage' ? '' : 'water_supply_drainage' })}
-          >
-            <span>💧 Water Supply & Drainage Design</span>
-          </button>
-
-          <button
-            className={`toggle-filter-chip ${filters.category_id === 'consultancy_pmc_dpr' ? 'active' : ''}`}
-            onClick={() => onFilterChange({ category_id: filters.category_id === 'consultancy_pmc_dpr' ? '' : 'consultancy_pmc_dpr' })}
-          >
-            <span>📐 PMC & Consultancy</span>
-          </button>
-
-          <button
-            className={`toggle-filter-chip ${filters.search === 'PWD' ? 'active' : ''}`}
-            onClick={() => onFilterChange({ search: filters.search === 'PWD' ? '' : 'PWD' })}
-          >
-            <span>🛣️ PWD / RSRDC</span>
-          </button>
-
-          <button
-            className={`toggle-filter-chip ${filters.search === 'NHAI' ? 'active' : ''}`}
-            onClick={() => onFilterChange({ search: filters.search === 'NHAI' ? '' : 'NHAI' })}
-          >
-            <span>🛣️ NHAI</span>
-          </button>
-
-          <button
-            className={`toggle-filter-chip ${filters.search === 'JDA' ? 'active' : ''}`}
-            onClick={() => onFilterChange({ search: filters.search === 'JDA' ? '' : 'JDA' })}
-          >
-            <span>🏢 JDA</span>
-          </button>
-
-          <button
-            className={`toggle-filter-chip ${filters.source_id === 'rajasthan_eproc' ? 'active' : ''}`}
-            onClick={() => onFilterChange({ source_id: filters.source_id === 'rajasthan_eproc' ? '' : 'rajasthan_eproc' })}
-          >
-            <span>Rajasthan eProc</span>
-          </button>
-
-          <button
-            className={`toggle-filter-chip ${filters.source_id === 'central_cppp' ? 'active' : ''}`}
-            onClick={() => onFilterChange({ source_id: filters.source_id === 'central_cppp' ? '' : 'central_cppp' })}
-          >
-            <span>Central CPPP</span>
           </button>
         </div>
 

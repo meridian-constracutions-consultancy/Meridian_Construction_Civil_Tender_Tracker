@@ -39,6 +39,21 @@ async def lifespan(app: FastAPI):
     # Startup: Ensure tables exist
     logger.info("Initializing database tables...")
     Base.metadata.create_all(bind=engine)
+
+    # Ensure schema migrations for special/declined/document columns
+    with engine.begin() as conn:
+        from sqlalchemy import text as sa_text
+        res = conn.execute(sa_text("PRAGMA table_info(tenders)"))
+        existing_cols = [r[1] for r in res.fetchall()]
+        if "is_special" not in existing_cols:
+            conn.execute(sa_text("ALTER TABLE tenders ADD COLUMN is_special BOOLEAN DEFAULT 0"))
+            logger.info("Added column is_special to tenders table")
+        if "saved_document_path" not in existing_cols:
+            conn.execute(sa_text("ALTER TABLE tenders ADD COLUMN saved_document_path VARCHAR(512)"))
+            logger.info("Added column saved_document_path to tenders table")
+        if "saved_document_name" not in existing_cols:
+            conn.execute(sa_text("ALTER TABLE tenders ADD COLUMN saved_document_name VARCHAR(256)"))
+            logger.info("Added column saved_document_name to tenders table")
     
     # Seed default initial administrator account if absent
     with Session(engine) as db:

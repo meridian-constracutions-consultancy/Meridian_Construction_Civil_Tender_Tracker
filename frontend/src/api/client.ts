@@ -12,6 +12,7 @@ export async function fetchTenders(
   params.set('limit', limit.toString());
   params.set('offset', offset.toString());
 
+  if (filters.view) params.set('view', filters.view);
   if (filters.search) params.set('search', filters.search);
   if (filters.is_civil_only !== undefined) params.set('is_civil_only', filters.is_civil_only.toString());
   if (filters.category_id) params.set('category_id', filters.category_id);
@@ -104,6 +105,63 @@ export async function toggleSaveTender(tenderId: string): Promise<{ status: stri
     throw new Error(`Failed to save tender: ${response.statusText}`);
   }
   return response.json();
+}
+
+export async function toggleSpecialTender(id: string): Promise<{ id: string; is_special: boolean; status: string }> {
+  const response = await fetch(`${BASE_URL}/tenders/${encodeURIComponent(id)}/special`, {
+    method: 'POST',
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to toggle special tender: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+export async function declineTender(id: string): Promise<{ id: string; status: string; is_special: boolean }> {
+  const response = await fetch(`${BASE_URL}/tenders/${encodeURIComponent(id)}/decline`, {
+    method: 'POST',
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to decline tender: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+export async function restoreTender(id: string): Promise<{ id: string; status: string; is_special: boolean }> {
+  const response = await fetch(`${BASE_URL}/tenders/${encodeURIComponent(id)}/restore`, {
+    method: 'POST',
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to restore tender: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+export async function deletePermanentTender(id: string): Promise<{ id: string; deleted: boolean }> {
+  const response = await fetch(`${BASE_URL}/tenders/${encodeURIComponent(id)}/permanent`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to delete tender permanently: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+export async function uploadSpecialDocument(id: string, file: File): Promise<{ status: string; saved_document_name: string }> {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await fetch(`${BASE_URL}/tenders/${encodeURIComponent(id)}/document`, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to upload tender document: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+export function getSpecialDocumentDownloadUrl(id: string): string {
+  return `${BASE_URL}/tenders/${encodeURIComponent(id)}/document`;
 }
 
 export function getExportUrl(type: 'csv' | 'excel', filters: Partial<FilterState>): string {

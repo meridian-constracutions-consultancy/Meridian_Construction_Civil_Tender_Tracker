@@ -80,7 +80,10 @@ class Tender(Base, TimestampMixin):
     classification_method: Mapped[str] = mapped_column(String(32), default="RULE_BASED", nullable=False)
     
     # Integrity & Status
-    status: Mapped[str] = mapped_column(String(32), default="ACTIVE", nullable=False, index=True) # ACTIVE, AMENDED, CLOSED, CANCELLED
+    status: Mapped[str] = mapped_column(String(32), default="ACTIVE", nullable=False, index=True) # ACTIVE, AMENDED, CLOSED, CANCELLED, DECLINED
+    is_special: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
+    saved_document_path: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
+    saved_document_name: Mapped[Optional[str]] = mapped_column(String(256), nullable=True)
     content_hash: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     contact_name: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
 

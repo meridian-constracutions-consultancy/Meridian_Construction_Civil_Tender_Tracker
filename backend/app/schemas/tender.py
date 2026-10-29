@@ -67,6 +67,9 @@ class TenderListItem(BaseModel):
     
     # Status
     status: str
+    is_special: bool = False
+    saved_document_path: Optional[str] = None
+    saved_document_name: Optional[str] = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -99,6 +102,9 @@ class TenderListResponse(BaseModel):
     closing_soon_count: int
     today_count: int = 0
     under_15_days_count: int = 0
+    main_count: int = 0
+    special_count: int = 0
+    declined_count: int = 0
     limit: int
     offset: int
     items: List[TenderListItem]
