@@ -6177,13 +6177,13 @@
     "currency": "INR",
     "emd_amount": 400000.0,
     "tender_fee": 0.0,
-    "published_date": "2026-10-29T17:19:00",
-    "published_date_raw": "29-Oct-2026 05:00 PM",
+    "published_date": "2026-10-14T17:00:00",
+    "published_date_raw": "14-Oct-2026 05:00 PM",
     "bid_submission_deadline": "2026-11-11T15:00:00",
     "bid_opening_date": "2026-11-12T15:00:00",
     "is_civil_construction": true,
     "category_id": "pmc_consultancy",
-    "has_corrigendum": false,
+    "has_corrigendum": true,
     "status": "ACTIVE"
   },
   {
