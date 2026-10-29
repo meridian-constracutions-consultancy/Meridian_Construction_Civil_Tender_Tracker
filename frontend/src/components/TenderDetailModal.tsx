@@ -47,7 +47,48 @@ export const TenderDetailModal: React.FC<TenderDetailModalProps> = ({ tender, on
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return 'Refer NIT';
     try {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+      // 1. Deterministic ISO format: YYYY-MM-DDTHH:MM:SS (immune to browser timezone offset)
+      const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})/);
+      if (isoMatch) {
+        const year = isoMatch[1];
+        const monthIdx = parseInt(isoMatch[2], 10) - 1;
+        const day = isoMatch[3];
+        const month = months[monthIdx] || isoMatch[2];
+        const date = `${day}-${month}-${year}`;
+
+        let hours = parseInt(isoMatch[4], 10);
+        const minutes = isoMatch[5];
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        return `${date} ${hours}:${minutes} ${ampm}`;
+      }
+
+      // 2. Direct Indian Government Portal format: DD-Mon-YYYY HH:MM AM/PM
+      const portalMatch = dateStr.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})(?:\s+(\d{1,2}):(\d{2})(?:\s*([APap][Mm]))?)?/);
+      if (portalMatch) {
+        const day = portalMatch[1].padStart(2, '0');
+        const month = portalMatch[2];
+        const year = portalMatch[3];
+        const date = `${day}-${month}-${year}`;
+
+        if (portalMatch[4] && portalMatch[5]) {
+          let hours = parseInt(portalMatch[4], 10);
+          const minutes = portalMatch[5];
+          let ampm = portalMatch[6] ? portalMatch[6].toUpperCase() : (hours >= 12 ? 'PM' : 'AM');
+          if (!portalMatch[6]) {
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+          }
+          return `${date} ${hours}:${minutes} ${ampm}`;
+        }
+        return date;
+      }
+
       const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
       return d.toLocaleDateString('en-IN', {
         day: '2-digit',
         month: 'short',
