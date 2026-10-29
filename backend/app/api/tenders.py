@@ -16,7 +16,7 @@ router = APIRouter(prefix="/tenders", tags=["tenders"])
 @router.get("", response_model=TenderListResponse)
 def list_tenders(
     view: str = Query("main", pattern="^(main|special|declined)$", description="View mode: main, special, or declined"),
-    limit: int = Query(50, ge=1, le=100, description="Display limit (default 50 per page)"),
+    limit: int = Query(500, ge=1, le=500, description="Display limit (default up to 500 per page for 100% sync)"),
     offset: int = Query(0, ge=0),
     search: Optional[str] = Query(None, description="Keyword search in title, reference number, or organization"),
     is_civil_only: bool = Query(True, description="Strictly keyword-matched design & consultancy tenders only"),
@@ -37,15 +37,16 @@ def list_tenders(
 ):
     """
     Returns Design & Consultancy tenders segregated into Main, Special, and Declined views.
-    Automatically purges expired tenders from main and declined lists while permanently preserving Special Tenders.
+    Automatically purges expired tenders from declined list on deadline elapsed while permanently preserving active and Special Tenders.
     """
     now = datetime.utcnow()
 
-    # 1. AUTODELETE EXPIRED TENDERS:
-    # Purge tenders whose bid submission deadline has elapsed, UNLESS marked as special
+    # 1. AUTODELETE EXPIRED DECLINED TENDERS ONLY:
+    # Purge only tenders in the DECLINED / Recycle Bin whose deadline has elapsed
     try:
         db.execute(
             delete(Tender).where(
+                Tender.status == "DECLINED",
                 Tender.is_special == False,
                 Tender.bid_submission_deadline.is_not(None),
                 Tender.bid_submission_deadline < now
@@ -181,8 +182,7 @@ def list_tenders(
     query_count = select(func.count(Tender.id))
     if conditions:
         query_count = query_count.where(*conditions)
-    raw_matching_count = db.scalar(query_count) or 0
-    matching_count = min(100, raw_matching_count)
+    matching_count = db.scalar(query_count) or 0
 
     # Main data query
     query = select(Tender)
@@ -195,8 +195,7 @@ def list_tenders(
     else:
         query = query.order_by(sort_column.asc().nullsfirst(), Tender.id.asc())
 
-    effective_limit = min(limit, max(0, 100 - offset))
-    query = query.offset(offset).limit(effective_limit)
+    query = query.offset(offset).limit(limit)
     items = db.scalars(query).all()
 
     return TenderListResponse(

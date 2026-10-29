@@ -72,7 +72,7 @@ export const App: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const response = await fetchTenders({ ...filters, view: currentView }, 100, 0, controller.signal);
+      const response = await fetchTenders({ ...filters, view: currentView }, 500, 0, controller.signal);
       setTenders(response.items);
       setStats({
         totalCount: response.total_count,
@@ -110,7 +110,7 @@ export const App: React.FC = () => {
 
       // 2. Fetch fresh records from database (including newly discovered tenders)
       const [tendersRes, sourcesRes] = await Promise.all([
-        fetchTenders({ ...filters, view: currentView }, 100, 0),
+        fetchTenders({ ...filters, view: currentView }, 500, 0),
         fetchSources(),
       ]);
 
