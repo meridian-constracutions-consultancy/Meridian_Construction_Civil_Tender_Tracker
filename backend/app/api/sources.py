@@ -32,10 +32,17 @@ def update_source(source_id: str, payload: SourceUpdate, db: Session = Depends(g
     return source
 
 @router.post("/sync-now")
-async def sync_all_sources(background_tasks: BackgroundTasks, limit: int = 15):
+async def sync_all_sources(background_tasks: BackgroundTasks, limit: int = 15, db: Session = Depends(get_db)):
     """
-    Triggers an immediate live portal collection run across both Central CPPP and Rajasthan eProc.
+    Triggers an immediate live portal collection run across both Central CPPP and Rajasthan eProc,
+    and performs immediate verified seed sync.
     """
+    from app.api.settings import sync_seed_endpoint
+    try:
+        sync_seed_endpoint(db)
+    except Exception as e:
+        logger.warning(f"Seed sync warning: {e}")
+
     async def _run_all():
         for s_id in ["central_cppp", "rajasthan_eproc"]:
             try:
@@ -46,7 +53,7 @@ async def sync_all_sources(background_tasks: BackgroundTasks, limit: int = 15):
     background_tasks.add_task(_run_all)
     return {
         "status": "SYNC_TRIGGERED",
-        "message": "Live portal discovery initiated for Central CPPP and Rajasthan eProc"
+        "message": "Live portal discovery initiated for Central CPPP and Rajasthan eProc and seed synchronized"
     }
 
 @router.post("/{source_id}/trigger")

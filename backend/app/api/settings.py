@@ -187,7 +187,8 @@ def sync_seed_endpoint(db: Session = Depends(get_db)):
         )
 
         if existing_t:
-            existing_t.published_date = p_date
+            if p_date:
+                existing_t.published_date = p_date
             existing_t.bid_submission_deadline = b_date
             existing_t.bid_opening_date = o_date
             existing_t.pre_bid_meeting_date = pre_date
@@ -207,7 +208,7 @@ def sync_seed_endpoint(db: Session = Depends(get_db)):
             existing_t.is_sub_contracting_allowed = s.get("is_sub_contracting_allowed", True)
             existing_t.bidding_type = s.get("bidding_type", "2-Cover (Technical + Financial BOQ)")
             existing_t.covers_count = s.get("covers_count", 2)
-            existing_t.has_corrigendum = s.get("has_corrigendum", False) or s.get("status") == "AMENDED"
+            existing_t.has_corrigendum = bool(existing_t.has_corrigendum or s.get("has_corrigendum", False) or s.get("status") == "AMENDED")
             existing_t.pre_bid_venue = s.get("pre_bid_venue", "Office of the Superintending Engineer / Chief Engineer (Procurement)")
         else:
             t_obj = Tender(

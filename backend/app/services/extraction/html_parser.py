@@ -120,8 +120,36 @@ class GePNICDetailParser:
             or "corrigendum title" in kv_pairs
         )
 
-        # Extract essential fields using helper
-        def get_field(*aliases: str) -> Optional[str]:
+        # Extract essential fields using helper with strict prioritization and exclusion
+        def get_field(*aliases: str, exclude_terms: Optional[List[str]] = None) -> Optional[str]:
+            if exclude_terms is None:
+                exclude_terms = ["corrigendum", "previous", "amendment", "revised"]
+            
+            # Phase 1: Exact key matches (case-insensitive)
+            for alias in aliases:
+                a_lower = alias.lower()
+                for k, v in kv_pairs.items():
+                    if k == a_lower:
+                        return v
+
+            # Phase 2: Exact key matches ignoring non-alphanumeric characters
+            for alias in aliases:
+                a_clean = re.sub(r'[^a-z0-9]', '', alias.lower())
+                for k, v in kv_pairs.items():
+                    k_clean = re.sub(r'[^a-z0-9]', '', k)
+                    if k_clean == a_clean:
+                        return v
+
+            # Phase 3: Substring matches, strictly excluding unwanted qualifiers (like 'corrigendum', 'previous')
+            for alias in aliases:
+                a_lower = alias.lower()
+                for k, v in kv_pairs.items():
+                    if any(term in k for term in exclude_terms):
+                        continue
+                    if a_lower in k:
+                        return v
+
+            # Phase 4: Fallback substring match if no non-excluded key exists
             for alias in aliases:
                 a_lower = alias.lower()
                 for k, v in kv_pairs.items():
@@ -283,18 +311,27 @@ class GePNICDetailParser:
                         "file_url": href,
                     })
 
-        # Check if tender has corrigendum
+        # Comprehensive Corrigendum Detection across table elements, key-values, links, and text
         has_corrigendum = False
-        corr_tbl = soup.find("table", id="corrigendumDocumenttable")
-        if corr_tbl and len(corr_tbl.find_all("tr")) > 1:
+        if any("corrigendum" in k for k in kv_pairs):
             has_corrigendum = True
         else:
-            for a_tag in soup.find_all("a", href=True):
-                t_attr = a_tag.get("title", "").lower()
-                tx_attr = a_tag.get_text(strip=True).lower()
-                if "corrigendum history" in t_attr or "corrigendum history" in tx_attr:
-                    has_corrigendum = True
-                    break
+            # Check for corrigendum tables
+            for tbl in soup.find_all("table"):
+                t_id = str(tbl.get("id", "")).lower()
+                t_cls = " ".join(tbl.get("class", [])).lower()
+                if "corrigendum" in t_id or "corrigendum" in t_cls:
+                    if len(tbl.find_all("tr")) > 1:
+                        has_corrigendum = True
+                        break
+            if not has_corrigendum:
+                for a_tag in soup.find_all("a", href=True):
+                    t_attr = a_tag.get("title", "").lower()
+                    tx_attr = a_tag.get_text(strip=True).lower()
+                    h_attr = a_tag.get("href", "").lower()
+                    if "corrigendum" in t_attr or "corrigendum" in tx_attr or "corrigendum" in h_attr:
+                        has_corrigendum = True
+                        break
 
         return {
             "tender_id": tender_id,

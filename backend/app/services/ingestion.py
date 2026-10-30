@@ -114,7 +114,15 @@ class IngestionService:
                     for k, v in item.items():
                         if k == "status" and is_amended:
                             continue
-                        setattr(existing, k, v)
+                        # PERMANENT SYNC RULE: Published date is immutable once established
+                        if k == "published_date" and existing.published_date is not None:
+                            continue
+                        # PERMANENT SYNC RULE: Corrigendum is monotonic (once YES, stays YES)
+                        if k == "has_corrigendum":
+                            existing.has_corrigendum = bool(existing.has_corrigendum or v)
+                            continue
+                        if hasattr(existing, k) and v is not None:
+                            setattr(existing, k, v)
 
                     if is_amended:
                         existing.status = "AMENDED"
@@ -141,6 +149,8 @@ class IngestionService:
                     })
                 else:
                     # Unchanged -> Simply update last_verified timestamp
+                    if item.get("has_corrigendum"):
+                        existing.has_corrigendum = True
                     existing.last_verified_at = datetime.now(timezone.utc)
                     unchanged += 1
 
