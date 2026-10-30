@@ -10,6 +10,7 @@ from app.models.document import TenderDocument, Corrigendum
 from app.models.source import Source, CollectionJob
 from app.models.audit import AuditEvent
 from app.services.sse_manager import sse_manager
+from app.services.verification import TenderVerificationEngine
 
 logger = logging.getLogger("ingestion")
 
@@ -44,6 +45,12 @@ class IngestionService:
             # Check if tender already exists in database
             stmt = select(Tender).where(Tender.tender_id == tender_id)
             existing: Tender = db.execute(stmt).scalar_one_or_none()
+
+            # Execute 5-Layer Cross-Verification Engine
+            is_valid, item, v_logs = TenderVerificationEngine.run_multi_layer_verification(item, existing)
+            if not is_valid:
+                logger.warning(f"Ingestion rejected tender {tender_id}: {v_logs}")
+                continue
 
             if not existing:
                 # Brand New Tender
