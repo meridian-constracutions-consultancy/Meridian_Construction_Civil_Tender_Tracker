@@ -12,6 +12,8 @@ import logging
 from datetime import datetime
 from typing import Dict, Any, Tuple, Optional, List
 
+from app.services.corrigendum_rules import CorrigendumVerificationEngine
+
 logger = logging.getLogger("tender_validator")
 
 class TenderVerificationEngine:
@@ -53,28 +55,16 @@ class TenderVerificationEngine:
         return True, None
 
     @staticmethod
-    def verify_corrigendum_status(item: Dict[str, Any], existing_has_corrigendum: bool = False) -> bool:
+    def verify_corrigendum_status(item: Dict[str, Any], existing_has_corrigendum: bool = False, existing_tender: Optional[Any] = None) -> Tuple[bool, List[str]]:
         """
-        Layer 3: Multi-vector verification of corrigendum status.
-        Returns True if ANY authentic verification vector confirms corrigendum.
-        Guarantees monotonicity: once verified as having corrigendum, never downgraded.
+        Executes the 10-Rule Corrigendum Verification Suite.
         """
-        if existing_has_corrigendum:
-            return True
-
-        if item.get("has_corrigendum") is True:
-            return True
-
-        status = str(item.get("status", "")).upper()
-        if status in ("AMENDED", "CORRIGENDUM_ISSUED", "EXTENDED"):
-            return True
-
-        # Check raw text or title for explicit corrigendum indicator
-        combined_text = f"{item.get('title', '')} {item.get('work_description', '')}".lower()
-        if "corrigendum" in combined_text or "amendment" in combined_text:
-            return True
-
-        return False
+        is_corr, is_valid, rule_res, audit_logs = CorrigendumVerificationEngine.evaluate_10_rules(
+            item=item,
+            existing_tender=existing_tender,
+            html_raw=item.get("_raw_html")
+        )
+        return is_corr, audit_logs
 
     @staticmethod
     def run_multi_layer_verification(
@@ -102,10 +92,11 @@ class TenderVerificationEngine:
                 item["published_date"] = existing_tender.published_date
                 logs.append("Layer 2 RECOVERY: Retained established published_date from database")
 
-        # Layer 3: Corrigendum Multi-Vector Check
+        # Layer 3: Corrigendum 10-Rule Check
         existing_corr = bool(existing_tender.has_corrigendum) if existing_tender else False
-        verified_corr = TenderVerificationEngine.verify_corrigendum_status(item, existing_corr)
+        verified_corr, corr_logs = TenderVerificationEngine.verify_corrigendum_status(item, existing_corr, existing_tender)
         item["has_corrigendum"] = verified_corr
+        logs.extend(corr_logs)
 
         # Layer 4: Immutability Enforcement
         if existing_tender:
