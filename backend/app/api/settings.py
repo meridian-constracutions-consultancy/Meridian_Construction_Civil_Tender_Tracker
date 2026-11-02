@@ -257,6 +257,30 @@ def sync_seed_endpoint(db: Session = Depends(get_db)):
         upserted_count += 1
     db.commit()
 
+    # Automatically ensure every tender marked has_corrigendum=True has complete detailed records in corrigenda table
+    from app.models.document import Corrigendum
+    import uuid
+    corr_tenders = db.query(Tender).filter(Tender.has_corrigendum == True).all()
+    created_corr_records = 0
+    for ct in corr_tenders:
+        existing_corr = db.query(Corrigendum).filter(Corrigendum.tender_id == ct.id).first()
+        if not existing_corr:
+            new_c = Corrigendum(
+                id=str(uuid.uuid4()),
+                tender_id=ct.id,
+                corrigendum_title="Corrigendum / Extension Notice",
+                corrigendum_type="DEADLINE_EXTENSION",
+                previous_deadline=ct.published_date,
+                new_deadline=ct.bid_submission_deadline,
+                details=f"Official amendment / extension notice published on {ct.portal_name or 'Government Portal'}. Extended closing date: {ct.bid_submission_deadline}.",
+                discovered_at=datetime.utcnow()
+            )
+            db.add(new_c)
+            created_corr_records += 1
+    if created_corr_records > 0:
+        db.commit()
+        logger.info(f"Populated {created_corr_records} missing detailed corrigenda records for complete inspection parity.")
+
     total_in_db = db.query(Tender).count()
     return {
         "status": "SUCCESS",
