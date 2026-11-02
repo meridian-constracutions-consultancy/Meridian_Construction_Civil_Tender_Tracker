@@ -187,6 +187,10 @@ def sync_seed_endpoint(db: Session = Depends(get_db)):
         )
 
         if existing_t:
+            # Preserve user's DECLINED status so sync does not move it back to Main
+            if existing_t.status == "DECLINED":
+                continue
+
             if p_date:
                 existing_t.published_date = p_date
             existing_t.bid_submission_deadline = b_date

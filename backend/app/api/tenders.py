@@ -41,33 +41,26 @@ def list_tenders(
     """
     now = datetime.utcnow()
 
-    # 1. AUTODELETE EXPIRED DECLINED TENDERS ONLY:
-    # Purge only tenders in the DECLINED / Recycle Bin whose deadline has elapsed
-    try:
-        db.execute(
-            delete(Tender).where(
-                Tender.status == "DECLINED",
-                Tender.is_special == False,
-                Tender.bid_submission_deadline.is_not(None),
-                Tender.bid_submission_deadline < now
-            )
-        )
-        db.commit()
-    except Exception as e:
-        db.rollback()
+    # 1. AUTODELETE DISABLED: Keep all declined tenders permanently in Declined tab
+    pass
 
-    # 2. Base filter criteria: ALWAYS strictly enforce keyword-matched tenders only
-    conditions = [Tender.is_civil_construction == True]
-
-    # View separation
-    if view == "special":
-        conditions.append(Tender.is_special == True)
-    elif view == "declined":
-        conditions.append(Tender.status == "DECLINED")
-        conditions.append(Tender.is_special == False)
+       # 2. View separation: Declined view shows ALL declined tenders without filter restrictions
+    if view == "declined":
+        conditions = [
+            Tender.status == "DECLINED",
+            Tender.is_special == False
+        ]
+    elif view == "special":
+        conditions = [
+            Tender.is_civil_construction == True,
+            Tender.is_special == True
+        ]
     else:  # "main" view
-        conditions.append(Tender.is_special == False)
-        conditions.append(Tender.status != "DECLINED")
+        conditions = [
+            Tender.is_civil_construction == True,
+            Tender.is_special == False,
+            Tender.status != "DECLINED"
+        ]
 
     if category_id:
         conditions.append(Tender.category_id == category_id)
