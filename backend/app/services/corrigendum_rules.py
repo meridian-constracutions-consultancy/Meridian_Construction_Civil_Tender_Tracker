@@ -144,8 +144,17 @@ class CorrigendumVerificationEngine:
             audit_logs.append("Rule 8 PASSED: Tender already verified as having Corrigendum (Monotonic Lock)")
         rule_results["Rule 8: Monotonic Corrigendum Lock"] = r8
 
-        # Synthesize Corrigendum Verification: True if ANY authentic rule triggers
-        is_corrigendum = any([r1, r2, r3, r4, r5, r6, r7, r8, item.get("has_corrigendum") is True])
+        # Synthesize Corrigendum Verification:
+        # A tender has Corrigendum ONLY if:
+        # 1. An official corrigendumDocumenttable with actual published amendment rows exists (r1), OR
+        # 2. A direct 'View Corrigendum History' icon/link attached to this tender exists (r3), OR
+        # 3. An actual Corrigendum document/PDF is attached (r7), OR
+        # 4. An official deadline extension was recorded (r5).
+        # We DO NOT infer corrigendum merely from generic title words or persistent lock if official notice has 0 corrigenda.
+        is_corrigendum = any([r1, r3, r5, r7])
+        if not is_corrigendum and item.get("has_corrigendum") is True and not (r1 or r3 or r5 or r7):
+            # If item previously had True but actual notice has no corrigenda table, reset to False
+            is_corrigendum = False
 
         # Rule 9: Publication Date Purity Guard
         r9 = True
