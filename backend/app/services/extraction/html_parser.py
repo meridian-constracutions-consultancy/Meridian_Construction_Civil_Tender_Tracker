@@ -311,27 +311,44 @@ class GePNICDetailParser:
                         "file_url": href,
                     })
 
-        # Comprehensive Corrigendum Detection across table elements, key-values, links, and text
+        # Strict Ground-Truth Corrigendum Detection:
+        # A tender has a Corrigendum ONLY if this specific tender notice contains an official
+        # corrigendumDocumenttable with at least 1 published amendment entry, or a direct
+        # 'View Corrigendum History' action link pointing to this tender's amendment records.
+        # Global sidebar navigation menus (id="activeCorrigendums", page=FrontEndLatestActiveCorrigendums)
+        # must be strictly excluded.
         has_corrigendum = False
-        if any("corrigendum" in k for k in kv_pairs):
+
+        # Vector 1: Specific tender corrigendum table with actual data rows
+        corr_tbl = soup.find("table", id="corrigendumDocumenttable")
+        if corr_tbl:
+            # Must have at least one data row beyond the header
+            rows = corr_tbl.find_all("tr")
+            if len(rows) > 1:
+                has_corrigendum = True
+
+        # Vector 2: Direct 'View Corrigendum History' icon/link attached to this tender's notice
+        if not has_corrigendum:
+            for a_tag in soup.find_all("a", href=True):
+                # Ignore global site navigation links
+                h_attr = a_tag.get("href", "")
+                if "page=frontendlatestactivecorrigendums" in h_attr.lower():
+                    continue
+                # Ignore global announcements
+                if "page=webannouncements" in h_attr.lower():
+                    continue
+                # Ignore sidebar activeCorrigendums container
+                if a_tag.find_parent("table", id="activeCorrigendums") or a_tag.find_parent("div", id="sidebar"):
+                    continue
+
+                t_attr = a_tag.get("title", "").lower()
+                if "view corrigendum history" in t_attr or "view corrigendum" in t_attr:
+                    has_corrigendum = True
+                    break
+
+        # Vector 3: Specific tender documents of type CORRIGENDUM
+        if not has_corrigendum and any(d.get("document_type") == "CORRIGENDUM" for d in documents):
             has_corrigendum = True
-        else:
-            # Check for corrigendum tables
-            for tbl in soup.find_all("table"):
-                t_id = str(tbl.get("id", "")).lower()
-                t_cls = " ".join(tbl.get("class", [])).lower()
-                if "corrigendum" in t_id or "corrigendum" in t_cls:
-                    if len(tbl.find_all("tr")) > 1:
-                        has_corrigendum = True
-                        break
-            if not has_corrigendum:
-                for a_tag in soup.find_all("a", href=True):
-                    t_attr = a_tag.get("title", "").lower()
-                    tx_attr = a_tag.get_text(strip=True).lower()
-                    h_attr = a_tag.get("href", "").lower()
-                    if "corrigendum" in t_attr or "corrigendum" in tx_attr or "corrigendum" in h_attr:
-                        has_corrigendum = True
-                        break
 
         return {
             "tender_id": tender_id,

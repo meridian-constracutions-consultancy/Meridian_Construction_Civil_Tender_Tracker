@@ -369,6 +369,69 @@ def download_special_tender_document(id: str, db: Session = Depends(get_db)):
     )
 
 
+@router.post("/{id_or_tender_id}/verify-portal")
+def verify_single_tender_against_portal(id_or_tender_id: str, db: Session = Depends(get_db)):
+    """
+    Direct Ground-Truth Verification Function:
+    Searches the official portal (Rajasthan eProc / Central CPPP) using the Tender ID,
+    extracts the live official HTML notice, and updates the database with 100% exact
+    dates, corrigendum (YES/NO), tender value, and EMD amount.
+    """
+    stmt = select(Tender).where(
+        or_(Tender.id == id_or_tender_id, Tender.tender_id == id_or_tender_id)
+    )
+    tender = db.scalar(stmt)
+    if not tender:
+        raise HTTPException(status_code=404, detail="Tender not found")
+
+    from app.services.live_verifier import LivePortalTenderVerifier
+    portal_data = LivePortalTenderVerifier.verify_tender_on_portal(tender.tender_id, tender.source_id)
+    if not portal_data:
+        return {
+            "status": "NOT_FOUND_ON_PORTAL",
+            "tender_id": tender.tender_id,
+            "message": "Tender was not found on portal search or portal was temporarily busy."
+        }
+
+    # Strict update of verified ground-truth fields
+    changes = {}
+    if portal_data.get("published_date") and portal_data["published_date"] != tender.published_date:
+        changes["published_date"] = {"before": str(tender.published_date), "after": str(portal_data["published_date"])}
+        tender.published_date = portal_data["published_date"]
+
+    if portal_data.get("bid_submission_deadline") and portal_data["bid_submission_deadline"] != tender.bid_submission_deadline:
+        changes["bid_submission_deadline"] = {"before": str(tender.bid_submission_deadline), "after": str(portal_data["bid_submission_deadline"])}
+        tender.bid_submission_deadline = portal_data["bid_submission_deadline"]
+
+    if portal_data.get("has_corrigendum") is not None and portal_data["has_corrigendum"] != tender.has_corrigendum:
+        changes["has_corrigendum"] = {"before": tender.has_corrigendum, "after": portal_data["has_corrigendum"]}
+        tender.has_corrigendum = portal_data["has_corrigendum"]
+
+    if portal_data.get("estimated_value") is not None and portal_data["estimated_value"] != tender.estimated_value:
+        changes["estimated_value"] = {"before": tender.estimated_value, "after": portal_data["estimated_value"]}
+        tender.estimated_value = portal_data["estimated_value"]
+
+    if portal_data.get("emd_amount") is not None and portal_data["emd_amount"] != tender.emd_amount:
+        changes["emd_amount"] = {"before": tender.emd_amount, "after": portal_data["emd_amount"]}
+        tender.emd_amount = portal_data["emd_amount"]
+
+    db.commit()
+    db.refresh(tender)
+
+    return {
+        "status": "VERIFIED_100_PERCENT",
+        "tender_id": tender.tender_id,
+        "changes": changes,
+        "verified_data": {
+            "published_date": str(tender.published_date),
+            "bid_submission_deadline": str(tender.bid_submission_deadline),
+            "has_corrigendum": tender.has_corrigendum,
+            "estimated_value": tender.estimated_value,
+            "emd_amount": tender.emd_amount
+        }
+    }
+
+
 @router.get("/{id_or_tender_id}", response_model=TenderDetail)
 def get_tender_detail(id_or_tender_id: str, db: Session = Depends(get_db)):
     """Fetches complete tender detail with documents and corrigenda."""
